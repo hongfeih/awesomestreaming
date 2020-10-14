@@ -73,7 +73,7 @@ For example:
   * Segment index to start = SegmentTemplate@startNumber + (Live edge - Period@start) / SegmentTemplate@duration = 801111868 + (1602576665.869263 - 1602223779.468)/2 = 801111868 + 176443 = 801288311
 - Time difference = 1602576665.869263 - 1602576652.869263 = 13s
 
-**SegmentTemplate time case**: <TBD>
+**SegmentTemplate time case**: TBD
 
 
 ## 3. Wallclock Time Mapping
