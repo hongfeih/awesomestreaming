@@ -7,7 +7,6 @@ nav_order: 2
 ---
 
 # Low Latency HLS from player perspective
-
 {: .no_toc }
 
 ## Table of contents
@@ -30,9 +29,13 @@ The EXT-X-SERVER-CONTROL tag allows the Server to indicate support for Delivery 
 | PART-HOLD-BACK      | The value is a decimal-floating-point number of seconds that indicates the server-recommended minimum distance from the end of  the Playlist at which clients should begin to play or to which they should seek when playing in Low-Latency Mode.  Its value MUST be at least twice the Part Target Duration.  Its value SHOULD be at least three times the Part Target Duration.  If different Renditions have different Part Target Durations then PART-HOLD-BACK SHOULD be at least three times the maximum Part Target Duration. |
 | CAN-BLOCK-RELOAD    | The value is an enumerated-string whose value is YES if the server supports Blocking Playlist Reload. |
 
+
+
 ## Live Edge Calculation
 
-Similiar with Latency@target of LL-DASH, **PART-HOLD-BACK** is the service provider’s preferred presentation latency, which can be used to calculate live edge. Player need to count the duration (PART-HOLD-BACK value) from the last part reversely to locate the part/segment to start download.
+Similar with Latency@target of LL-DASH, **PART-HOLD-BACK** is the service provider’s preferred presentation latency, which can be used to calculate live edge. 
+
+>  Player SHOULD NOT choose a segment closer to the end of the Playlist than described by the HOLD-BACK and PART-HOLD-BACK attributes.[1]
 
 ```
 Find the part which:
@@ -114,12 +117,47 @@ fileSequence272.mp4
 
 
 
-## Generation of Partial Segments
+## Preload hints and blocking of Media downloads
 
-## Playlist Delta Updates
+Eliminating unnecessary round trips is critical when delivering low-latency streams at global scale. Servers use a new tag, EXT-X-PRELOAD-HINT, to inform clients of upcoming Partial Segments and Media Initialization Sections. A client can issue a GET request for a hinted resource in advance; the server responds to the request as soon as the media becomes available.
+
+```
+#EXT-X-PRELOAD-HINT:<attribute-list>
+```
+
+For example
+
+```
+#EXT-X-PART:DURATION=0.33334,URI="filePart273.0.mp4",INDEPENDENT=YES
+#EXT-X-PART:DURATION=0.33334,URI="filePart273.1.mp4"
+#EXT-X-PART:DURATION=0.33334,URI="filePart273.2.mp4"
+#EXT-X-PRELOAD-HINT:TYPE=PART,URI="filePart273.3.mp4"
+```
+
+After part "filePart273.2.mp4" is downloaded, player don't need to wait for playlist reload, instead, can try to get "filePart273.3.mp4" directly.
+
+
 
 ## Blocking of Playlist reload
 
-## Preload hints and blocking of Media downloads
+
+
+## Generation of Partial Segments
+
+
+
+## Playlist Delta Updates
+
+
 
 ## Rendition Reports
+
+
+
+## References
+
+1. [HLS specification](https://tools.ietf.org/html/draft-pantos-hls-rfc8216bis-07)
+2. [Enabling Low-Latency HLS](https://developer.apple.com/documentation/http_live_streaming/enabling_low-latency_hls)
+3. [Update: What is Low-Latency HLS and How Does It Relate to CMAF](https://www.wowza.com/blog/apple-low-latency-hls)
+4. [Ultra-Low-Latency Streaming Using Chunked-Encoded and ChunkedTransferred CMAF](https://www.akamai.com/us/en/multimedia/documents/white-paper/low-latency-streaming-cmaf-whitepaper.pdf)
+5. [Video Tech Deep-Dive: Live Low Latency Streaming Part 3 – Low-Latency HLS](https://bitmovin.com/live-low-latency-hls/)
