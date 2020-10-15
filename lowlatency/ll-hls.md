@@ -1,8 +1,9 @@
 ---
-layout: post
+layout: default
 title:  "Low Latency HLS from player perspective"
-date:   2020-10-15 09:27:08 +0800
 categories: lowlatency
+parent: Low Latency
+nav_order: 3
 ---
 
 # Low Latency HLS from player perspective
