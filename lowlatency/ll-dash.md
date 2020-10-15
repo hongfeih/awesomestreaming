@@ -33,7 +33,7 @@ nav_order: 1
 
 
 
-## 1. Client-Server Time Synchronization
+## Client-Server Time Synchronization
 
 UTCTiming element defined in MPD specifies a time source that can be used to adjust  the client clock for calculations that involve the client’s wallclock time such as segment availability calculations and latency calculations, etc.
 
@@ -47,7 +47,7 @@ Normally, time offset can be calculated by UTCTiming (**request only once**):
 
 
 
-## 2. Live edge calculation
+## Live edge calculation
 
 Although there are SegmentBase and SegmentList to describe playlist of AdapatationSet/Representation, these 2 types are rarely used practically, so only 2 cases of SegmentTemplate (time/number) are mentioned here.
 
@@ -110,7 +110,7 @@ For example:
 
 
 
-## 3. CMAF Chunked Delivery
+## CMAF Chunked Delivery
 Compared to an “ordinary” fMP4 segment that has its media payload in a single big mdat box, chunked CMAF allows segments to consist of a sequence of CMAF chunks (moof+mdat tuples). In extreme cases, every frame can be put into its own CMAF chunk. 
 
 This enables the encoder to produce and the player’s decoder to consume segments in a chunk-by-chunk fashion instead of limiting use to entire segment consumption. 
@@ -121,7 +121,7 @@ So, player should support partial decoding.
 
 
 
-## 4. Service Description
+## Service Description
 
 A ServiceDescription element should be used to specify the service provider’s expectation.
 
@@ -156,7 +156,7 @@ player need to:
 
 
 
-## 5. Bandwidth estimation
+## Bandwidth estimation
 
 One consequence of segment data being delivered as fast as it is produced is that the segment download time is ~equal to the segment duration. 
 
@@ -174,7 +174,7 @@ Research for better ways to estimate bandwidth in chunked low-latency delivery s
 
 
 
-## 6. Presentation Latency Calculation
+## Presentation Latency Calculation
 
 The Producer Reference Time supplies times corresponding to the production of associated media. This information permits among others to:
 
@@ -226,7 +226,7 @@ PL = Now@client + time offset - currentPresentationTime
 
 
 
-## 7. Resynchronization Points
+## Resynchronization Points
 
 Resync element permits the player to parse the segment to locate the Resynchronization Point. 
 
