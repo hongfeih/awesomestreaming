@@ -123,15 +123,15 @@ This can be achieved by specifying a so-called *Producer Reference Time* either 
 
   ```
   aligned(8) class ProducerReferenceTimeBox extends FullBox("srft", version, 0) {
-   unsigned int(32) reference_track_ID;
-   unsigned int(64) ntp_timestamp;
-   if (version==0)
-   {
-   	unsigned int(32) media_time;
-   } else
-   {
-   	unsigned int(64) media_time;
-   }
+    unsigned int(32) reference_track_ID;
+    unsigned int(64) ntp_timestamp;
+    if (version==0)
+    {
+   	  unsigned int(32) media_time;
+    } else
+    {
+   	  unsigned int(64) media_time;
+    }
   } 
   ```
 
@@ -199,6 +199,7 @@ estimatedBW = downloadedSize / downloadDuration
 Research for better ways to estimate bandwidth in chunked low-latency delivery scenarios is ongoing in academia and throughout the streaming:
 
 - [BOLA](https://arxiv.org/pdf/1601.06748.pdf): chooses bitrate based on buffer level
+  - Reference implementation: [BolaRule.js](https://github.com/Dash-Industry-Forum/dash.js/blob/development/src/streaming/rules/abr/BolaRule.js)
 - [ACTE](https://dl.acm.org/doi/10.1145/3304112.3325611): a sliding window to accurately measure the available bandwidth and an online linear adaptive filter to predict the bandwidth into the future
 
 
@@ -217,24 +218,24 @@ aligned(8) class SegmentIndexBox extends FullBox("sidx", version, 0) {
  unsigned int(32) timescale;
  if (version==0)
  {
-     unsigned int(32) earliest_presentation_time;
-     unsigned int(32) first_offset;
+   unsigned int(32) earliest_presentation_time;
+   unsigned int(32) first_offset;
  }
  else
  {
-     unsigned int(64) earliest_presentation_time;
-     unsigned int(64) first_offset;
+   unsigned int(64) earliest_presentation_time;
+   unsigned int(64) first_offset;
  }
  unsigned int(16) reserved = 0;
  unsigned int(16) reference_count;
  for(i=1; i <= reference_count; i++)
  {
-     bit (1) reference_type;
-     unsigned int(31) referenced_size;
-     unsigned int(32) subsegment_duration;
-     bit(1) starts_with_SAP;
-     unsigned int(3) SAP_type;
-     unsigned int(28) SAP_delta_time;
+   bit (1) reference_type;
+   unsigned int(31) referenced_size;
+   unsigned int(32) subsegment_duration;
+   bit(1) starts_with_SAP;
+   unsigned int(3) SAP_type;
+   unsigned int(28) SAP_delta_time;
  }
 } 
 ```
