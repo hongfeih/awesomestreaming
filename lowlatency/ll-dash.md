@@ -95,13 +95,13 @@ For example:
 </MPD>
 ```
 
-- Normal player
+- **Normal player**
   * now = (2020-10-13T08:11:06.069263Z) = 1602576666.069263
   * availability window start point = 1602576666.069263 - 6 = 1602576660.069263
   * availability window end point = 1602576666.069263
   * Live edge = 1602576666.869263 - MPD@maxSegmentDuration - MPD@suggestedPresentationDelay = 1602576652.869263
   * Segment index to start = SegmentTemplate@startNumber + (Live edge - Period@start) / SegmentTemplate@duration = 801111868 + (1602576652.869263 - 1602223779.468)/2 = 801111868 + 176436 = 801288304
-- Low latency player	
+- **Low latency player**	
   * now = (2020-10-13T08:11:06.069263Z) = 1602576666.069263
   * availability window start point = 1602576666.069263 - 6 = 1602576660.069263
   * availability window end point = 1602576666.069263 + SegmentTemplate@AvailabilityTimeOffset = 1602576667.869263

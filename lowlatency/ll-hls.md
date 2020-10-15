@@ -103,17 +103,25 @@ fileSequence272.mp4
 #EXT-X-RENDITION-REPORT:URI="../4M/waitForMSN.php",LAST-MSN=273,LAST-PART=1
 ```
 
-- PART-HOLD-BACK=1.0, means desired latency target is 1.0s
+- **Normal player**
 
-- Calculate duration to 1.0s from last part ("**filePart273.2.mp4**") reversely, locate start part "**filePart273.0.mp4**"
+  - HOLD-BACK is not defined, so by default start from the third segment from last (**fileSequence270.mp4**)
 
-  ```
-  0.33334 + 0.33334 + 0.33334 > 1.0
-  ```
+- **Low latency player**
 
--  start with part "**filePart273.0.mp4**" as it has property "INDEPENDENT=YES"
+  - PART-HOLD-BACK=1.0, means desired latency target is 1.0s
 
-  - Or need continue to find the one with "INDEPENDENT=YES"
+  - Calculate duration to 1.0s from last part ("**filePart273.2.mp4**") reversely, locate start part "**filePart273.0.mp4**"
+
+    ```
+    0.33334 + 0.33334 + 0.33334 > 1.0
+    ```
+
+  -  start with part "**filePart273.0.mp4**" as it has property "INDEPENDENT=YES"
+
+    - Or need continue to find the one with "INDEPENDENT=YES"
+
+- Time difference = 4.00008 + 4.00008 = 8s
 
 
 
@@ -140,7 +148,78 @@ After part "filePart273.2.mp4" is downloaded, player don't need to wait for play
 
 ## Blocking of Playlist reload
 
+To support efficient client notification of new Media Segments and Partial Segments, Low-Latency HLS introduces the ability to block a Playlist reload request. When a client issues an HTTP GET to request a Media Playlist update, it can add special query parameters called Delivery Directives to specify that it wants the Playlist response to include a future segment. The server then holds onto the request (blocks) until a version of the Playlist that contains that segment is available. Blocking Playlist Reloads eliminate Playlist polling.
 
+| Item        | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| _HLS_msn=M  | Player will get response until the Playlist contains any Partial Segment with a Media Sequence Number of M |
+| _HLS_part=N | When the Playlist URI contains both an _HLS_msn directive and an _HLS_part directive, Player will get response until the Playlist contains any Partial Segment with Part Index N and with a Media Sequence Number of M |
+
+Player need to request playlist reload while requesting 
+
+For example:
+
+```
+#EXTM3U
+#EXT-X-TARGETDURATION:4
+#EXT-X-VERSION:6
+#EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,CAN-SKIP-UNTIL=24,PART-HOLD-BACK=3.012
+#EXT-X-PART-INF:PART-TARGET=1.004000
+#EXT-X-MEDIA-SEQUENCE:1077717
+#EXT-X-MAP:URI="fileSequence18.mp4"
+#EXTINF:3.98933,
+fileSequence1078262.mp4
+#EXTINF:3.98933,
+fileSequence1078263.mp4
+#EXT-X-PROGRAM-DATE-TIME:2020-10-15T09:26:00.708Z
+#EXTINF:3.98933,
+fileSequence1078264.mp4
+#EXTINF:3.98933,
+fileSequence1078265.mp4
+#EXTINF:3.98933,
+fileSequence1078266.mp4
+#EXTINF:3.98933,
+fileSequence1078267.mp4
+#EXTINF:3.98933,
+fileSequence1078268.mp4
+#EXT-X-PROGRAM-DATE-TIME:2020-10-15T09:26:20.655Z
+#EXTINF:3.98933,
+fileSequence1078269.mp4
+#EXTINF:3.98933,
+fileSequence1078270.mp4
+#EXTINF:3.98933,
+fileSequence1078271.mp4
+#EXTINF:3.98933,
+fileSequence1078272.mp4
+#EXTINF:3.98933,
+fileSequence1078273.mp4
+#EXT-X-PROGRAM-DATE-TIME:2020-10-15T09:26:40.602Z
+#EXTINF:3.98933,
+fileSequence1078274.mp4
+#EXTINF:3.98933,
+fileSequence1078275.mp4
+#EXT-X-PART:DURATION=1.00267,URI="lowLatencySeg.mp4?segment=filePart1078276.1.mp4"
+#EXT-X-PART:DURATION=1.00267,URI="lowLatencySeg.mp4?segment=filePart1078276.2.mp4"
+#EXT-X-PART:DURATION=1.00267,URI="lowLatencySeg.mp4?segment=filePart1078276.3.mp4"
+#EXT-X-PART:DURATION=0.98133,URI="lowLatencySeg.mp4?segment=filePart1078276.4.mp4"
+#EXTINF:3.98933,
+fileSequence1078276.mp4
+#EXT-X-PART:DURATION=1.00267,URI="lowLatencySeg.mp4?segment=filePart1078277.1.mp4"
+#EXT-X-PART:DURATION=1.00267,URI="lowLatencySeg.mp4?segment=filePart1078277.2.mp4"
+#EXT-X-PART:DURATION=1.00267,URI="lowLatencySeg.mp4?segment=filePart1078277.3.mp4"
+#EXT-X-PART:DURATION=0.98133,URI="lowLatencySeg.mp4?segment=filePart1078277.4.mp4"
+#EXTINF:3.98933,
+fileSequence1078277.mp4
+#EXT-X-PART:DURATION=1.00267,URI="lowLatencySeg.mp4?segment=filePart1078278.1.mp4"
+#EXT-X-PRELOAD-HINT:TYPE=PART,URI="lowLatencySeg.mp4?segment=filePart1078278.2.mp4"
+#EXT-X-RENDITION-REPORT:URI="/cmaf/media0/lowLatencyHLS.m3u8",LAST-MSN=1074858,LAST-PART=3
+#EXT-X-RENDITION-REPORT:URI="/cmaf/media1/lowLatencyHLS.m3u8",LAST-MSN=1074858,LAST-PART=3
+#EXT-X-RENDITION-REPORT:URI="/cmaf/media2/lowLatencyHLS.m3u8",LAST-MSN=1074858,LAST-PART=3
+```
+
+- While requesting the preload hint part/segment (**"lowLatencySeg.mp4?segment=filePart1078278.2.mp4"**), player can request the playlist with query string (?HLS_msn=**1077733**&HLS_part=**3**)
+  - "1077717 + 16 = 1077733" is the sequence number of segment needed
+  - "3" is the part number of segment needed
 
 ## Generation of Partial Segments
 
