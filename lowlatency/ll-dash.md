@@ -22,6 +22,8 @@ nav_order: 1
     * Using non-chunked segments whose duration < 30% of target latency 
     * Using chunked segments (CMAF)
 
+
+
 ## 1. Client-Server Time Synchronization
 
 UTCTiming element defined in MPD specifies a time source that can be used to adjust  the client clock for calculations that involve the client’s wallclock time such as segment availability calculations and latency calculations, etc.
@@ -99,55 +101,14 @@ For example:
 
 
 
-## 3. Presentation Latency Calculation
+## 3. CMAF Chunked Delivery
+Compared to an “ordinary” fMP4 segment that has its media payload in a single big mdat box, chunked CMAF allows segments to consist of a sequence of CMAF chunks (moof+mdat tuples). In extreme cases, every frame can be put into its own CMAF chunk. 
 
-The Producer Reference Time supplies times corresponding to the production of associated media. This information permits among others to:
+This enables the encoder to produce and the player’s decoder to consume segments in a chunk-by-chunk fashion instead of limiting use to entire segment consumption. 
 
--  provide media clients with information to enable consumption and production to proceed at equivalent rates, thus avoiding possible buffer overflow or underflow
-- enable **measuring and potentially controlling the latency** between the production of the media time and the playout. 
+![](./cmaf.png)
 
-This can be achieved by specifying a so-called *Producer Reference Time* either in the segments (i.e. inband as prft box (defined in ETSI TS 126 247 [G.5 Producer reference box](https://www.etsi.org/deliver/etsi_ts/126200_126299/126247/12.03.00_60/ts_126247v120300p.pdf)) or in the MPD. 
-
-```
-<ProducerReferenceTime id="0" inband="true" type="encoder" wallclockTime="2020-02-19T10:42:02.667Z" presentationTime="1000">
-	<UTCTiming schemeIdUri="urn:mpeg:dash:utc:http-xsiso:2014" value="http://time.akamai.com/?iso&ms" />
-</ProducerReferenceTime>
-```
-
-- type can be "encoder" or "captured":
-
-  - "encoder": wallclockTime of encoder output for frame at specific presentationTime, for calculation of Encoder-Display Latency (EDL) 
-  - "captured": wallclockTime of encoder input for frame at specific presentationTime, for calculation of End-to-End Latency (EEL)
-
-- set inband="true" to indicate "prft" box in segments:
-
-  ```
-  aligned(8) class ProducerReferenceTimeBox extends FullBox("srft", version, 0) {
-    unsigned int(32) reference_track_ID;
-    unsigned int(64) ntp_timestamp;
-    if (version==0)
-    {
-   	  unsigned int(32) media_time;
-    } else
-    {
-   	  unsigned int(64) media_time;
-    }
-  } 
-  ```
-
-- presentation latency PL of a presentation time PT presented at wall clock time WC in seconds  is determined as:
-
-  ```
-  PL = (ProducerReferenceTime@wallclockTime – UTCTiming@wallclockTime) - (currentPresentationTime - (ProducerReferenceTime@presentationTime – MPD@presentationTimeOffset)
-  ```
-
-Currently no (rare) player support it, instead, for the purpose of measuring latency, PL can be calculated as:
-
-```
-PL = Now@client + time offset - currentPresentationTime
-```
-
-- time offset = Now@client - UTCTiming@server which mentioned in 1. Client-Server Time Synchronization
+So, player should support partial decoding.
 
 
 
@@ -204,7 +165,59 @@ Research for better ways to estimate bandwidth in chunked low-latency delivery s
 
 
 
-## 6. Resynchronization Points
+## 6. Presentation Latency Calculation
+
+The Producer Reference Time supplies times corresponding to the production of associated media. This information permits among others to:
+
+-  provide media clients with information to enable consumption and production to proceed at equivalent rates, thus avoiding possible buffer overflow or underflow
+- enable **measuring and potentially controlling the latency** between the production of the media time and the playout. 
+
+This can be achieved by specifying a so-called *Producer Reference Time* either in the segments (i.e. inband as prft box (defined in ETSI TS 126 247 [G.5 Producer reference box](https://www.etsi.org/deliver/etsi_ts/126200_126299/126247/12.03.00_60/ts_126247v120300p.pdf)) or in the MPD. 
+
+```
+<ProducerReferenceTime id="0" inband="true" type="encoder" wallclockTime="2020-02-19T10:42:02.667Z" presentationTime="1000">
+	<UTCTiming schemeIdUri="urn:mpeg:dash:utc:http-xsiso:2014" value="http://time.akamai.com/?iso&ms" />
+</ProducerReferenceTime>
+```
+
+- type can be "encoder" or "captured":
+
+  - "encoder": wallclockTime of encoder output for frame at specific presentationTime, for calculation of Encoder-Display Latency (EDL) 
+  - "captured": wallclockTime of encoder input for frame at specific presentationTime, for calculation of End-to-End Latency (EEL)
+
+- set inband="true" to indicate "prft" box in segments:
+
+  ```
+  aligned(8) class ProducerReferenceTimeBox extends FullBox("srft", version, 0) {
+    unsigned int(32) reference_track_ID;
+    unsigned int(64) ntp_timestamp;
+    if (version==0)
+    {
+   	  unsigned int(32) media_time;
+    } else
+    {
+   	  unsigned int(64) media_time;
+    }
+  } 
+  ```
+
+- presentation latency PL of a presentation time PT presented at wall clock time WC in seconds  is determined as:
+
+  ```
+  PL = (ProducerReferenceTime@wallclockTime – UTCTiming@wallclockTime) - (currentPresentationTime - (ProducerReferenceTime@presentationTime – MPD@presentationTimeOffset)
+  ```
+
+Currently no (rare) player support it, instead, for the purpose of measuring latency, PL can be calculated as:
+
+```
+PL = Now@client + time offset - currentPresentationTime
+```
+
+- time offset = Now@client - UTCTiming@server which mentioned in 1. Client-Server Time Synchronization
+
+
+
+## 7. Resynchronization Points
 
 Resync element permits the player to parse the segment to locate the Resynchronization Point. 
 
@@ -285,3 +298,10 @@ Resync element is defined in MPEG-DASH ISO/IEC 23009-1:2020/Amd.1, still on the 
 - The minimum distance in bytes between two Resynchronization Points is 30,000B (0.1x300,000)
 - The maximum distance in bytes between two Resynchronization Points is 45,000B (0.15x300,000) 
 - As the @marker flag is set to true, a DASH client may search for the resync point using a box-parsing algorithm. 
+
+## References
+[1]. https://dashif-documents.azurewebsites.net/DASH-IF-IOP/master/DASH-IF-IOP.html
+[2]. https://bitmovin.com/cmaf-low-latency-streaming/
+[3]. https://bitmovin.com/live-low-latency-streaming-p1/, https://bitmovin.com/live-low-latency-streaming-p2/
+[4]. https://dashif.org/docs/CR-Low-Latency-Live-r8.pdf
+[5]. https://dvb.org/wp-content/uploads/2020/03/Latest-on-DASH-low-latency.pdf
