@@ -1,3 +1,10 @@
+---
+layout: post
+title:  "Low Latency DASH from player perspective"
+date:   2020-10-15 09:27:08 +0800
+categories: lowlatency
+---
+
 # Low Latency DASH from player perspective
 
 ## 1. Client Time Synchronization
