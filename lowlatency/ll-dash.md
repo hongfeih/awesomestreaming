@@ -309,8 +309,8 @@ Resync element is defined in MPEG-DASH ISO/IEC 23009-1:2020/Amd.1, still on the 
 - As the @marker flag is set to true, a DASH client may search for the resync point using a box-parsing algorithm. 
 
 ## References
-[1]. https://dashif-documents.azurewebsites.net/DASH-IF-IOP/master/DASH-IF-IOP.html
-[2]. https://bitmovin.com/cmaf-low-latency-streaming/
-[3]. https://bitmovin.com/live-low-latency-streaming-p1/, https://bitmovin.com/live-low-latency-streaming-p2/
-[4]. https://dashif.org/docs/CR-Low-Latency-Live-r8.pdf
-[5]. https://dvb.org/wp-content/uploads/2020/03/Latest-on-DASH-low-latency.pdf
+1. https://dashif-documents.azurewebsites.net/DASH-IF-IOP/master/DASH-IF-IOP.html
+1. https://bitmovin.com/cmaf-low-latency-streaming/
+1. https://bitmovin.com/live-low-latency-streaming-p1/, https://bitmovin.com/live-low-latency-streaming-p2/
+1. https://dashif.org/docs/CR-Low-Latency-Live-r8.pdf
+1. https://dvb.org/wp-content/uploads/2020/03/Latest-on-DASH-low-latency.pdf
