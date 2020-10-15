@@ -221,7 +221,35 @@ fileSequence1078277.mp4
   - "1077717 + 16 = 1077733" is the sequence number of segment needed
   - "3" is the part number of segment needed
 
+
+
+## Bandwidth Estimation
+
+Similar with LL-DASH, transferring small sub-segment media pieces in the LL-HLS case likely suffers from [estimation inaccuracies caused by small transfer sizes](https://docs.google.com/document/d/1e3jVkZ6nxNWgCqTNibqV8uJcKo8d597XVl3nJkY7P8c/edit#heading=h.omecbu2809cn).
+
+According to [6]/[7]:
+
+> - Don't make the assumption that measurement errors are normally distributed independent of the transfer size, because small transfers (or transfers taking only a short time) seem to get a higher share of additional measurement errors and thus should be weighted even less. 
+
+So need to filter out download data of small size in a short time. 
+
+> - Account for the time taken to open the connection as this may include some of the transferred bytes already and gives an indication about the additional connection time needed for every request 
+
+So try to reuse connection, or take connection time out of bandwidth calculation.
+
+Currently no good ABR mentioned for LL-HLS.
+
+
+
+## Presentation Latency Calculation
+
+There is no ProducerReferenceTime as LL-DASH, so player has to calculate live latency by:
+
+
+
 ## Generation of Partial Segments
+
+
 
 
 
@@ -229,7 +257,11 @@ fileSequence1078277.mp4
 
 
 
+
+
 ## Rendition Reports
+
+
 
 
 
@@ -240,3 +272,5 @@ fileSequence1078277.mp4
 3. [Update: What is Low-Latency HLS and How Does It Relate to CMAF](https://www.wowza.com/blog/apple-low-latency-hls)
 4. [Ultra-Low-Latency Streaming Using Chunked-Encoded and ChunkedTransferred CMAF](https://www.akamai.com/us/en/multimedia/documents/white-paper/low-latency-streaming-cmaf-whitepaper.pdf)
 5. [Video Tech Deep-Dive: Live Low Latency Streaming Part 3 – Low-Latency HLS](https://bitmovin.com/live-low-latency-hls/)
+6. [Low-latency live playback with ExoPlayer](https://docs.google.com/document/d/1z9qwuP7ff9sf3DZboXnhEF9hzW3Ng5rfJVqlGn8N38k)
+7. [Bandwidth estimation analysis from ExoPlayer](https://docs.google.com/document/d/1e3jVkZ6nxNWgCqTNibqV8uJcKo8d597XVl3nJkY7P8c)

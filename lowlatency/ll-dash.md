@@ -162,7 +162,7 @@ player need to:
 
 
 
-## Bandwidth estimation
+## Bandwidth Estimation
 
 One consequence of segment data being delivered as fast as it is produced is that the segment download time is ~equal to the segment duration. 
 
