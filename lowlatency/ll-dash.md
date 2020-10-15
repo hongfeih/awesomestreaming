@@ -111,6 +111,9 @@ For example:
 
 **SegmentTemplate time case**: TBD
 
+Pracitally, player can start very close to the live edge even without the low-latency techniques if the network can sustain it, or on the other hand, player can start further away from the live edge to allow initial bandwidth estimations using full media chunks for better user experience. 
+
+Player can archieve latency target by [playbackRate adjustment](#service-description) after playback started.
 
 
 ## CMAF Chunked Delivery
@@ -136,7 +139,7 @@ A ServiceDescription element should be used to specify the service provider’s 
   | max    | The service provider’s indication about the maximum presentation latency in milliseconds. **Indicates a content provider’s desire for the content <u>not to be presented</u> if the latency exceeds the maximum latency.** |
   | min    | The service provider’s indication about minimum presentation latency in milliseconds for example to avoid inconsistencies with second screen applications, overlays, etc. |
 
-- **PlaybackRate**: playback rate boundaries may be specified that define the allowed range for playback acceleration/deceleration by the playout client to fulfill the latency requirements.
+- [**PlaybackRate**][playbackRate]: playback rate boundaries may be specified that define the allowed range for playback acceleration/deceleration by the playout client to fulfill the latency requirements.
 
   | Item | Description                                                  |
   | ---- | ------------------------------------------------------------ |
