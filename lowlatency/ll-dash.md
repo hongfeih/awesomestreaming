@@ -8,7 +8,21 @@ nav_order: 1
 
 # Low Latency DASH from player perspective
 
-## 1. Client Time Synchronization
+4 noteworthy items from [DASH IF Guidelines on Low Latency](https://dashif.org/docs/CR-Low-Latency-Live-r8.pdf):
+
+- At least one **UTCTiming** element with millisecond precision
+* Two operational modes are permitted
+  * **Simple live offering is used by applying @duration signaling and $Number$ based templating** (suggested)
+  * Main live offering with the SegmentTimeline as either $Number$ or $Time$ is supported by the proposed updates in MPEG-DASH fourth edition. 
+
+* At least one **ServiceDescription** element shall be present as follows: 
+  * A Latency element - specifying min, target and max latencies
+  * A PlaybackSpeed element – min, max playback speeds for latency correction. 
+* A low latency adaption set can be built in two ways 
+    * Using non-chunked segments whose duration < 30% of target latency 
+    * Using chunked segments (CMAF)
+
+## 1. Client-Server Time Synchronization
 
 UTCTiming element defined in MPD specifies a time source that can be used to adjust  the client clock for calculations that involve the client’s wallclock time such as segment availability calculations and latency calculations, etc.
 
@@ -16,9 +30,9 @@ UTCTiming element defined in MPD specifies a time source that can be used to adj
 <UTCTiming schemeIdUri="urn:mpeg:dash:utc:http-iso:2014" value="./game25006_hd_cmaf_number.isotime" />
 ```
 
-Normally, time offset can be calculated by UTCTiming (request only once):
+Normally, time offset can be calculated by UTCTiming (**request only once**):
 
-	time offset = Now@client - UTCTiming@server
+	time offset = UTCTiming@server - Now@client
 
 
 
@@ -84,12 +98,13 @@ For example:
 **SegmentTemplate time case**: TBD
 
 
-## 3. Wallclock Time Mapping
+
+## 3. Presentation Latency Calculation
 
 The Producer Reference Time supplies times corresponding to the production of associated media. This information permits among others to:
 
 -  provide media clients with information to enable consumption and production to proceed at equivalent rates, thus avoiding possible buffer overflow or underflow
-- enable measuring and potentially controlling the latency between the production of the media time and the playout. 
+- enable **measuring and potentially controlling the latency** between the production of the media time and the playout. 
 
 This can be achieved by specifying a so-called *Producer Reference Time* either in the segments (i.e. inband as prft box (defined in ETSI TS 126 247 [G.5 Producer reference box](https://www.etsi.org/deliver/etsi_ts/126200_126299/126247/12.03.00_60/ts_126247v120300p.pdf)) or in the MPD. 
 
@@ -123,16 +138,20 @@ This can be achieved by specifying a so-called *Producer Reference Time* either 
 - presentation latency PL of a presentation time PT presented at wall clock time WC in seconds  is determined as:
 
   ```
-  PL = (ProducerReferenceTime@wallclockTime – UTCTiming@wallclockTime) - (ProducerReferenceTime@presentationTime – PTA)/TS.
+  PL = (ProducerReferenceTime@wallclockTime – UTCTiming@wallclockTime) - (currentPresentationTime - (ProducerReferenceTime@presentationTime – MPD@presentationTimeOffset)
   ```
 
-  
+Currently no (rare) player support it, instead, for the purpose of measuring latency, PL can be calculated as:
+
+```
+PL = Now@client + time offset - currentPresentationTime
+```
+
+- time offset = Now@client - UTCTiming@server which mentioned in 1. Client-Server Time Synchronization
 
 
 
-
-
-## 4. Low Latency Service Description
+## 4. Service Description
 
 A ServiceDescription element should be used to specify the service provider’s expectation.
 
@@ -167,14 +186,101 @@ player need to:
 
 
 
-## 5. Resynchronization Points
+## 5. Bandwidth estimation
 
-The previous post pointed out that chunked delivery decouples the achievable latency from the segment durations and enables us to choose relatively long segment durations to maintain good video encoding efficiency. In turn, this prevents fast quality adaptation of the player as quality switching can only be done on segment boundaries. In a low-latency scenario with low buffer levels, fast adaptation — especially down-switching — would be desirable to avoid buffer underruns and consequently playback interruptions.
+One consequence of segment data being delivered as fast as it is produced is that the segment download time is ~equal to the segment duration. 
 
-To that end, Resync elements may be used that specify segment properties like chunk duration and chunk size. Playback clients can utilize them to locate resync point and
+Conventional throughput estimation algorithms will always produce the answer that throughput equals bandwidth and hence the player will never switch up.
+
+```
+estimatedBW = downloadedSize / downloadDuration
+```
+
+Research for better ways to estimate bandwidth in chunked low-latency delivery scenarios is ongoing in academia and throughout the streaming:
+
+- [BOLA](https://arxiv.org/pdf/1601.06748.pdf): chooses bitrate based on buffer level
+- [ACTE](https://dl.acm.org/doi/10.1145/3304112.3325611): a sliding window to accurately measure the available bandwidth and an online linear adaptive filter to predict the bandwidth into the future
+
+
+
+## 6. Resynchronization Points
+
+Resync element permits the player to parse the segment to locate the Resynchronization Point. 
+
+- Normally in **sidx box**:
+  - This is most easily used for Segments that are fully available on the network.
+  - So not very useful for live, especially low latency
+
+```
+aligned(8) class SegmentIndexBox extends FullBox("sidx", version, 0) {
+ unsigned int(32) reference_ID;
+ unsigned int(32) timescale;
+ if (version==0)
+ {
+     unsigned int(32) earliest_presentation_time;
+     unsigned int(32) first_offset;
+ }
+ else
+ {
+     unsigned int(64) earliest_presentation_time;
+     unsigned int(64) first_offset;
+ }
+ unsigned int(16) reserved = 0;
+ unsigned int(16) reference_count;
+ for(i=1; i <= reference_count; i++)
+ {
+     bit (1) reference_type;
+     unsigned int(31) referenced_size;
+     unsigned int(32) subsegment_duration;
+     bit(1) starts_with_SAP;
+     unsigned int(3) SAP_type;
+     unsigned int(28) SAP_delta_time;
+ }
+} 
+```
+
+- Signaling in the MPD 
+
+  | Item  | Description                                                                       ||
+  | ----- | ----------------------- | -------------------------------------------------------- |
+  | dT    | On Adaptation Set level | providing the maximum and nominal duration of each chunk |
+  |  | On Representation level | providing the maximum and nominal distance of two random access points |
+  | dImax |On Adaptation Set level| providing the maximum size of a chunk. If unknown, parameter may be omitted. |
+  |       | On Representation level | providing the maximum size of the data in between the two random access points. <br />If unknown, parameter may be omitted. |
+  | dImin |On Adaptation Set level| providing the minimum size of a chunk. If unknown, parameter may be omitted. |
+  |       | On Representation level | providing the minimum size of the data in between the two random access points. <br />If unknown, parameter may be omitted. |
+  | type  |On Adaptation Set level| set to 0 to indicate that these are CMAF chunks without any promise for specific <br />random-access capabilities beyond parsing. |
+  |       | On Representation level | set to 1, 2 or 3 to indicate that random access is possible. |
+
+Resync elements specify segment properties like chunk duration and chunk size which player can utilize them to locate resync point and
 
 - Join streams mid-segment, based on latency requirements
 - Switch representations mid-segment
 - Resynchronize at mid-segment position after buffer underruns
 
-The previous was a glimpse of what to expect in the near future and shows the great effort of the media industry put into kick-starting low-latency streaming with MPEG-DASH and getting it ready for production services. 
+Resync element is defined in MPEG-DASH ISO/IEC 23009-1:2020/Amd.1, still on the way, don't know the details how it used in practice. 
+
+```
+[1]<Resync type="0" dT="500000" dImin="0.03125" dImax="0.09375" /> 
+<SegmentTemplate timescale="1000000" duration="8000000" availabilityTimeOffset="7.500" availabilityTimeComplete="false" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="1" />
+<Representation id="0" mimeType="video/mp4" codecs="avc1.640016" bandwidth="500000" width="1280" height="720" sar="1:1" qualityRanking="5" />
+...
+<Representation id="3" mimeType="video/mp4" codecs="avc1.640016" bandwidth="300000" width="960" height="540" sar="1:1" qualityRanking="2">
+	[2]<Resync type="2" dT="1000000" dImin="0.1" dImax="0.15" marker="TRUE" />
+</Representation>
+```
+
+[1] Indicates that 
+
+- The point is of type 0 - a CMAF chunk without any promise for specific random-access capabilities. 
+- The maximum chunk duration is 500ms (500,000/1,000,000)
+- The minimum distance in bytes between two Resynchronization Points is 15,625B (0.03125x500,000)
+- The maximum distance in bytes between two Resynchronization Points is 46,875B (0.09375x500,000)
+
+[2] Indicates that 
+
+- The point is of type 2 – a CMAF chunk that can be used for fast access or switching 
+- The maximum time delta between these points is 1s (1,000,000/1,000,000) 
+- The minimum distance in bytes between two Resynchronization Points is 30,000B (0.1x300,000)
+- The maximum distance in bytes between two Resynchronization Points is 45,000B (0.15x300,000) 
+- As the @marker flag is set to true, a DASH client may search for the resync point using a box-parsing algorithm. 
