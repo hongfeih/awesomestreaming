@@ -7,6 +7,12 @@ nav_order: 1
 ---
 
 # Low Latency DASH from player perspective
+{: .no_toc }
+
+Table of contents
+{: .no_toc .text-delta }
+
+TOC {:toc}
 
 4 noteworthy items from [DASH IF Guidelines on Low Latency](https://dashif.org/docs/CR-Low-Latency-Live-r8.pdf):
 
