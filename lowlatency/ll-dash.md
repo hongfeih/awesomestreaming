@@ -17,6 +17,9 @@ nav_order: 1
 
 ---
 
+
+![](./liveedge.png)
+
 4 noteworthy items from [DASH IF Guidelines on Low Latency](https://dashif.org/docs/CR-Low-Latency-Live-r8.pdf):
 
 - At least one **UTCTiming** element with millisecond precision
@@ -48,8 +51,6 @@ Normally, time offset can be calculated by UTCTiming (**request only once**):
 
 
 ## Live edge calculation
-
-![](./liveedge.png)
 
 Although there are SegmentBase and SegmentList to describe playlist of AdapatationSet/Representation, these 2 types are rarely used practically, so only 2 cases of SegmentTemplate (time/number) are mentioned here.
 
