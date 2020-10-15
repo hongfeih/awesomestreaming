@@ -1,8 +1,8 @@
 ---
 layout: default
-title: Low Latency
+title: DRM
 nav_order: 2
 has_children: true
 ---
 
-Everything about low latency player
+Everything about DRM playback
