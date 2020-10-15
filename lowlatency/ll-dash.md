@@ -47,7 +47,9 @@ Normally, time offset can be calculated by UTCTiming (**request only once**):
 
 
 
-## Live Edge Calculation
+## Live edge calculation
+
+![](./liveedge.png)
 
 Although there are SegmentBase and SegmentList to describe playlist of AdapatationSet/Representation, these 2 types are rarely used practically, so only 2 cases of SegmentTemplate (time/number) are mentioned here.
 
@@ -156,7 +158,7 @@ player need to:
 
 
 
-## Bandwidth Estimation
+## Bandwidth estimation
 
 One consequence of segment data being delivered as fast as it is produced is that the segment download time is ~equal to the segment duration. 
 
