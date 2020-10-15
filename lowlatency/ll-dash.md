@@ -6,7 +6,7 @@ parent: Low Latency
 nav_order: 1
 ---
 
-# Customization
+# Low Latency DASH from player perspective
 {: .no_toc }
 
 ## Table of contents
@@ -16,8 +16,6 @@ nav_order: 1
 {:toc}
 
 ---
-
-# Low Latency DASH from player perspective
 
 4 noteworthy items from [DASH IF Guidelines on Low Latency](https://dashif.org/docs/CR-Low-Latency-Live-r8.pdf):
 
