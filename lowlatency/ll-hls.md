@@ -243,7 +243,86 @@ Currently no good ABR mentioned for LL-HLS, so it's all depends on bandwidth.
 
 ## Presentation Latency Calculation
 
-There is no ProducerReferenceTime as LL-DASH, so player has to calculate live latency by:
+No like LL-DASH with ProducerReferenceTime and Client-Server Time Synchronization, so player has to calculate live latency with:
+
+- Based on EXT-X-PROGRAM-DATE-TIME in manifest
+- Client-Server Time Synchronization manually (calculate time offset) or trust local system time (time offset = 0)
+- Find the relative-absolute time mapping of startup part
+  - Calculate Relative time which is the accumulated duration to start part
+  - Calculate Absolute time by adding last EXT-X-PROGRAM-DATE-TIME to the accumulated duration after it
+  - TimeGap = Absolution time - Relative time
+- PresentationTime = player@mediaTime + TimeGap
+- Latency = Now@client + time offset (if any) - PresentationTime
+
+For example:
+
+```
+#EXTM3U
+#EXT-X-TARGETDURATION:4
+#EXT-X-VERSION:6
+#EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,CAN-SKIP-UNTIL=24,PART-HOLD-BACK=3.012
+#EXT-X-PART-INF:PART-TARGET=1.004000
+#EXT-X-MEDIA-SEQUENCE:1090548
+#EXT-X-MAP:URI="fileSequence52.mp4"
+#EXTINF:4.00000,
+fileSequence1091129.mp4
+#EXTINF:4.00000,
+fileSequence1091130.mp4
+#EXT-X-PROGRAM-DATE-TIME:2020-10-16T02:53:01.265Z
+#EXTINF:4.00000,
+fileSequence1091131.mp4
+#EXTINF:4.00000,
+fileSequence1091132.mp4
+#EXTINF:4.00000,
+fileSequence1091133.mp4
+#EXTINF:4.00000,
+fileSequence1091134.mp4
+#EXTINF:4.00000,
+fileSequence1091135.mp4
+#EXT-X-PROGRAM-DATE-TIME:2020-10-16T02:53:21.265Z
+#EXTINF:4.00000,
+fileSequence1091136.mp4
+#EXTINF:4.00000,
+fileSequence1091137.mp4
+#EXTINF:4.00000,
+fileSequence1091138.mp4
+#EXTINF:4.00000,
+fileSequence1091139.mp4
+#EXTINF:4.00000,
+fileSequence1091140.mp4
+#EXT-X-PROGRAM-DATE-TIME:2020-10-16T02:53:41.265Z
+#EXTINF:4.00000,
+fileSequence1091141.mp4
+#EXTINF:4.00000,
+fileSequence1091142.mp4
+#EXT-X-PART:DURATION=1.00000,INDEPENDENT=YES,URI="lowLatencySeg.mp4?segment=filePart1091143.1.mp4"
+#EXT-X-PART:DURATION=1.00000,INDEPENDENT=YES,URI="lowLatencySeg.mp4?segment=filePart1091143.2.mp4"
+#EXT-X-PART:DURATION=1.00000,INDEPENDENT=YES,URI="lowLatencySeg.mp4?segment=filePart1091143.3.mp4"
+#EXT-X-PART:DURATION=1.00000,INDEPENDENT=YES,URI="lowLatencySeg.mp4?segment=filePart1091143.4.mp4"
+#EXTINF:4.00000,
+fileSequence1091143.mp4
+#EXT-X-PART:DURATION=1.00000,INDEPENDENT=YES,URI="lowLatencySeg.mp4?segment=filePart1091144.1.mp4"
+#EXT-X-PART:DURATION=1.00000,INDEPENDENT=YES,URI="lowLatencySeg.mp4?segment=filePart1091144.2.mp4"
+→→ #EXT-X-PART:DURATION=1.00000,INDEPENDENT=YES,URI="lowLatencySeg.mp4?segment=filePart1091144.3.mp4"
+#EXT-X-PART:DURATION=1.00000,INDEPENDENT=YES,URI="lowLatencySeg.mp4?segment=filePart1091144.4.mp4"
+#EXTINF:4.00000,
+fileSequence1091144.mp4
+#EXT-X-PART:DURATION=1.00000,INDEPENDENT=YES,URI="lowLatencySeg.mp4?segment=filePart1091145.1.mp4"
+#EXT-X-PART:DURATION=1.00000,INDEPENDENT=YES,URI="lowLatencySeg.mp4?segment=filePart1091145.2.mp4"
+#EXT-X-PRELOAD-HINT:TYPE=PART,URI="lowLatencySeg.mp4?segment=filePart1091145.3.mp4"
+#EXT-X-RENDITION-REPORT:URI="/cmaf/audio/lowLatencyHLS.m3u8",LAST-MSN=1093480,LAST-PART=1
+#EXT-X-RENDITION-REPORT:URI="/cmaf/media0/lowLatencyHLS.m3u8",LAST-MSN=1090564,LAST-PART=1
+#EXT-X-RENDITION-REPORT:URI="/cmaf/media2/lowLatencyHLS.m3u8",LAST-MSN=1090564,LAST-PART=1
+```
+
+- player will start playback from part "**lowLatencySeg.mp4?segment=filePart1091144.3.mp4**"
+  - Relative time = 15 * 4 + 3 = 63s
+  - Absolute time = 2020-10-16T02:53:41.265Z + (3 * 4 + 3) = 1602816821.265 + 15 = 1602816836.265
+  - TimeGap = 1602816836.265 - 63 = 1602816773.265
+- player@mediaTime = 70s
+- Now@client = 1602816846.415, use local system time
+- PresentationTime = 70 + 1602816773.265 = 1602816843.265
+- Latency = 1602816846.415 - 1602816843.265 = 3.15s
 
 
 
