@@ -231,11 +231,11 @@ According to [6]/[7]:
 
 > "Don't make the assumption that measurement errors are normally distributed independent of the transfer size, because small transfers (or transfers taking only a short time) seem to get a higher share of additional measurement errors and thus should be weighted even less. "
 
-=> So need to filter out download data of small size in a short time. 
+​	→ So need to filter out download data of small size in a short time. 
 
 > "Account for the time taken to open the connection as this may include some of the transferred bytes already and gives an indication about the additional connection time needed for every request"
 
-=> So try to reuse connection, or take connection time out of bandwidth calculation.
+​	→ So try to reuse connection, or take connection time out of bandwidth calculation.
 
 Currently no good ABR mentioned for LL-HLS, so it's all depends on bandwidth.
 
