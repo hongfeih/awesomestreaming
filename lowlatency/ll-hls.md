@@ -19,7 +19,7 @@ nav_order: 2
 
 ## Delivery Directives
 
-The EXT-X-SERVER-CONTROL tag allows the Server to indicate support for Delivery Directives:
+The `EXT-X-SERVER-CONTROL` tag allows the Server to indicate support for Delivery Directives:
 
 | Item                | Description                                                  |
 | ------------------- | ------------------------------------------------------------ |
@@ -33,9 +33,9 @@ The EXT-X-SERVER-CONTROL tag allows the Server to indicate support for Delivery 
 
 ## Live Edge Calculation
 
-Similar with Latency@target of LL-DASH, **PART-HOLD-BACK** is the service provider’s preferred presentation latency, which can be used to calculate live edge. 
+Similar with Latency@target of LL-DASH, `PART-HOLD-BACK` is the service provider’s preferred presentation latency, which can be used to calculate live edge. 
 
->  Player SHOULD NOT choose a segment closer to the end of the Playlist than described by the HOLD-BACK and PART-HOLD-BACK attributes.[1]
+>  Player SHOULD NOT choose a segment closer to the end of the Playlist than described by the `HOLD-BACK` and `PART-HOLD-BACK` attributes.[1]
 
 ```
 Find the part which:
@@ -105,11 +105,11 @@ fileSequence272.mp4
 
 - **Normal player**
 
-  - HOLD-BACK is not defined, so by default start from the third segment from last (**fileSequence270.mp4**)
+  - `HOLD-BACK` is not defined, so by default start from the third segment from last (**fileSequence270.mp4**)
 
 - **Low latency player**
 
-  - PART-HOLD-BACK=1.0, means desired latency target is 1.0s
+  - `PART-HOLD-BACK`=1.0, means desired latency target is 1.0s
 
   - Calculate duration to 1.0s from last part ("**filePart273.2.mp4**") reversely, locate start part "**filePart273.0.mp4**"
 
@@ -127,7 +127,7 @@ fileSequence272.mp4
 
 ## Preload hints and blocking of Media downloads
 
-Eliminating unnecessary round trips is critical when delivering low-latency streams at global scale. Servers use a new tag, EXT-X-PRELOAD-HINT, to inform clients of upcoming Partial Segments and Media Initialization Sections. A client can issue a GET request for a hinted resource in advance; the server responds to the request as soon as the media becomes available.
+Eliminating unnecessary round trips is critical when delivering low-latency streams at global scale. Servers use a new tag, `EXT-X-PRELOAD-HINT`, to inform clients of upcoming Partial Segments and Media Initialization Sections. A client can issue a GET request for a hinted resource in advance; the server responds to the request as soon as the media becomes available.
 
 ```
 #EXT-X-PRELOAD-HINT:<attribute-list>
@@ -148,14 +148,18 @@ After part "filePart273.2.mp4" is downloaded, player don't need to wait for play
 
 ## Blocking of Playlist reload
 
-To support efficient client notification of new Media Segments and Partial Segments, Low-Latency HLS introduces the ability to block a Playlist reload request. When a client issues an HTTP GET to request a Media Playlist update, it can add special query parameters called Delivery Directives to specify that it wants the Playlist response to include a future segment. The server then holds onto the request (blocks) until a version of the Playlist that contains that segment is available. Blocking Playlist Reloads eliminate Playlist polling.
+To support efficient client notification of new Media Segments and Partial Segments, Low-Latency HLS introduces the ability to block a Playlist reload request. 
+
+> Clients MUST NOT request Blocking Playlist Reloads unless the Playlist contains an `EXT-X-SERVER-CONTROL` tag with a CAN-BLOCK-RELOAD=YES attribute.
+
+When a client issues an HTTP GET to request a Media Playlist update, it can add special query parameters called Delivery Directives to specify that it wants the Playlist response to include a future segment. The server then holds onto the request (blocks) until a version of the Playlist that contains that segment is available. Blocking Playlist Reloads eliminate Playlist polling.
 
 | Item        | Description                                                  |
 | ----------- | ------------------------------------------------------------ |
 | _HLS_msn=M  | Player will get response until the Playlist contains any Partial Segment with a Media Sequence Number of M |
 | _HLS_part=N | When the Playlist URI contains both an _HLS_msn directive and an _HLS_part directive, Player will get response until the Playlist contains any Partial Segment with Part Index N and with a Media Sequence Number of M |
 
-Player need to request playlist reload while requesting 
+Player can request playlist reload while requesting last part/segment in the playlist including preload-hints part.
 
 For example:
 
@@ -245,11 +249,11 @@ Currently no good ABR mentioned for LL-HLS, so it's all depends on bandwidth.
 
 No like LL-DASH with ProducerReferenceTime and Client-Server Time Synchronization, so player has to calculate live latency with:
 
-- Based on EXT-X-PROGRAM-DATE-TIME in manifest
+- Based on `EXT-X-PROGRAM-DATE-TIME` in manifest
 - Client-Server Time Synchronization manually (calculate time offset) or trust local system time (time offset = 0)
 - Find the relative-absolute time mapping of startup part
   - Calculate Relative time which is the accumulated duration to start part
-  - Calculate Absolute time by adding last EXT-X-PROGRAM-DATE-TIME to the accumulated duration after it
+  - Calculate Absolute time by adding last `EXT-X-PROGRAM-DATE-TIME` to the accumulated duration after it
   - TimeGap = Absolution time - Relative time
 - PresentationTime = player@mediaTime + TimeGap
 - Latency = Now@client + time offset (if any) - PresentationTime
@@ -328,19 +332,79 @@ fileSequence1091144.mp4
 
 ## Generation of Partial Segments
 
+Partial segments are advertised using a new `EXT-X-PART` tag.
+
+- Only advertised for the most recent segments in the playlist to reduce Playlist bloat 
+
+- Can be different files
+
+  <img src="https://media.licdn.cn/dms/image/C5612AQHWPy5EqjtOog/article-inline_image-shrink_1000_1488/0?e=1608163200&v=beta&t=dK9IbWzeWHj_iMitgeD0NDrBiVmVo--IYbbrJF76XoI" alt="No alt text provided for this image" style="zoom:50%;" />
+
+- **Also can be a same file but at different byte ranges to save round-trips compared to making separate requests for each part**
+
+  ![Low-Latency HLS_byterange variations for partial segment requests_code screenshot](https://bitmovin.com/wp-content/uploads/2020/08/Screenshot-2020-08-10-at-11.30.38.png)
+
 
 
 
 
 ## Playlist Delta Updates
 
+Player transfer playlists more frequently with Low-Latency HLS. To reduce transfer cost by removing unnesseray duplicated contents,  `EXT-X-SKIP` tag is introduced to update replace a considerable portion of the Playlist that the client already has. 
 
+> If a Media Playlist file contains an `EXT-X-SERVER-CONTROL` tag with a CAN-SKIP-UNTIL attribute and no EXT-X-ENDLIST tag, a Client MAY use the _HLS_skip Delivery Directive to request Playlist Delta Updates. 
+>
+> A Client SHOULD NOT request a Playlist Delta Update unless it already has a version of the Playlist that is no older than one-half of the Skip Boundary.
+>
+> The client can request a Playlist Delta Update that skips older Media Segments by adding an "_HLS_skip=YES" directive to the Media Playlist URL when it requests the Playlist.
+>
+> A Client MUST merge the contents of a Playlist Delta Update with its previous version of the Playlist to form an up-to-date version of the Playlist. 
+
+| Item                        | Description                                                  |
+| --------------------------- | ------------------------------------------------------------ |
+| SKIPPED-SEGMENTS            | The value is the count of Media Segments were replaced by the `EXT-X-SKIP` tag.  This attribute is REQUIRED. |
+| RECENTLY-REMOVED-DATERANGES | The value is a quoted-string consisting of a tab (0x9) delimited list of EXT-X-DATERANGE IDs that have been removed from the Playlist recently. |
+| _HLS_skip                   | YES or v2<br />v2 for skip EXT-X-DATERANGE in case of CAN-SKIP-DATERANGES supported |
+
+For example:
+
+- First time, full playlist, saw **CAN-SKIP-UNTIL**
+- Next time can request with ?_HLS_skip=YES
+  - EXT-X-VERSION changed to 9
+  - Skipped total 16 segments
+  - EXT-X-MEDIA-SEQUENCE increased to 1 mean segment0.m4s is not available anymore
+  - segment21.m4s is newly added
+  - Player need to merge with previous playlist to get current playlist
+
+![](./delta-1.png)⇒ ![](delta-3.png)⇒ ![](delta-2.png)
+
+- For DATERANGE, need request with ?_HLS_skip=v2
+
+  <img src="delta-4.png" style="zoom:67%;" />⇒<img src="delta-5.png" style="zoom:67%;" />
 
 
 
 ## Rendition Reports
 
+When playing at low latency, the client must be able to switch renditions with a minimum number of round trips in order to perform bit-rate adaptation. To support this, the server adds Rendition Reports on the other renditions in the Master Playlist to each Media Playlist. The `EXT-X-RENDITION-REPORT` tag carries a Rendition Report and provides information such as the last Media Sequence Number and Part currently in the Media Playlist of that rendition.
 
+| Item      | Description                                                  |
+| --------- | ------------------------------------------------------------ |
+| URI       | The value is the URI for the Media Playlist of the specified Rendition.  It MUST be relative to the URI of the Media Playlist       containing the `EXT-X-RENDITION-REPORT` tag.  This attribute is REQUIRED. |
+| LAST-MSN  | The value is a decimal-integer specifying the Media Sequence Number of the last Media Segment currently in the specified       Rendition.  If the Rendition contains Partial Segments then this value is the Media Sequence Number of the last Partial Segment. This attribute is REQUIRED. |
+| LAST-PART | The value is a decimal-integer that indicates the Part Index of the last Partial Segment currently in the specified Rendition whose Media Sequence Number is equal to the LAST-MSN attribute value.  This attribute is REQUIRED if the Rendition contains a Partial Segment. |
+
+
+
+## HTTP/2 Push
+
+Apple have now also introduced HTTP2 Server Push into the HLS specifications. Essentially, the player should pass again via Query String, this time a boolean of *_HLS_push=1/0*, whether or not the most recent partial segment at the bottom of the m3u8 list should be pushed in parallel with the m3u8 response.
+
+Historically, the HLS client would need to download the full m3u8 response, enumerate all the sequences and then only after that make a seperate HTTP request for the segment, often wasting several hundred milliseconds in the process.
+
+![No alt text provided for this image](https://media.licdn.cn/dms/image/C5612AQFN6yAGDckKPA/article-inline_image-shrink_1000_1488/0?e=1608163200&v=beta&t=UC_qN02Yy4zU37hjBL4e2bNROI8a8Hsm_A45n-IxQa4)
+
+CDNs will need to support HTTP2 push and be able to intrinsically understand which object to push along side a cached m3u8 response for this feature to be of significant value.
 
 
 
@@ -353,3 +417,4 @@ fileSequence1091144.mp4
 5. [Video Tech Deep-Dive: Live Low Latency Streaming Part 3 – Low-Latency HLS](https://bitmovin.com/live-low-latency-hls/)
 6. [Low-latency live playback with ExoPlayer](https://docs.google.com/document/d/1z9qwuP7ff9sf3DZboXnhEF9hzW3Ng5rfJVqlGn8N38k)
 7. [Bandwidth estimation analysis from ExoPlayer](https://docs.google.com/document/d/1e3jVkZ6nxNWgCqTNibqV8uJcKo8d597XVl3nJkY7P8c)
+8. [Apple's implementation of Low Latency HLS Explained](https://www.linkedin.com/pulse/apples-implementation-low-latency-hls-explained-phil-harrison/)
