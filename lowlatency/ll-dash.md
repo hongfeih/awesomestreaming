@@ -322,3 +322,5 @@ Resync element is defined in MPEG-DASH ISO/IEC 23009-1:2020/Amd.1, still on the 
 1. [Video Tech Deep-Dive: Live Low Latency Streaming Part 1](https://bitmovin.com/live-low-latency-streaming-p1/), [Video Tech Deep-Dive: Live Low Latency Streaming Part 2](https://bitmovin.com/live-low-latency-streaming-p2/)
 1. [Low Latency DASH spec](https://dashif.org/docs/CR-Low-Latency-Live-r8.pdf)
 1. [Meeting live broadcast requirements - the latest on DASH Low Latency](https://dvb.org/wp-content/uploads/2020/03/Latest-on-DASH-low-latency.pdf)
+1. [Ultra-Low-Latency Streaming Using Chunked-Encoded and ChunkedTransferred CMAF](https://www.akamai.com/us/en/multimedia/documents/white-paper/low-latency-streaming-cmaf-whitepaper.pdf)
+
