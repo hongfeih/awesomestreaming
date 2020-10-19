@@ -9,7 +9,7 @@ nav_order: 2
 # Low Latency HLS from player perspective
 {: .no_toc }
 
-<img style="width: inherit;" src="http://hits.dwyl.com/dev-yakuza.github.io{{ page.url }}.svg" alt="hit count image"/>
+[![HitCount](http://hits.dwyl.com/hongfeih/hongfeih/awesomestreaming.svg)](http://hits.dwyl.com/hongfeih/hongfeih/awesomestreaming)
 
 ## Table of contents
 {: .no_toc .text-delta }
