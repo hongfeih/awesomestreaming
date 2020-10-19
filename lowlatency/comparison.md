@@ -9,6 +9,8 @@ nav_order: 3
 # Comparison of DASH-LL and LL-HLS
 {: .no_toc }
 
+![](https://visitor-badge.laobi.icu/badge?page_id=ll-dash)
+
 ## Table of contents
 {: .no_toc .text-delta }
 
