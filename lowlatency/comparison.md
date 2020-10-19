@@ -3,7 +3,7 @@ layout: default
 title:  "Comparison of DASH-LL and LL-HLS"
 categories: lowlatency
 parent: Low Latency
-nav_order: 1
+nav_order: 3
 ---
 
 # Comparison of DASH-LL and LL-HLS
