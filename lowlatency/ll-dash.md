@@ -1,12 +1,12 @@
 ---
 layout: default
-title:  "Low Latency DASH from player perspective"
+title:  "DASH Low Latency from player perspective"
 categories: lowlatency
 parent: Low Latency
 nav_order: 1
 ---
 
-# Low Latency DASH from player perspective
+# DASH Low Latency from player perspective
 {: .no_toc }
 
 ## Table of contents
