@@ -9,6 +9,8 @@ nav_order: 1
 # DASH Low Latency from player perspective
 {: .no_toc }
 
+<img style="width: inherit;" src="http://hits.dwyl.com/dev-yakuza.github.io{{ page.url }}.svg" alt="hit count image"/>
+
 ## Table of contents
 {: .no_toc .text-delta }
 
