@@ -9,7 +9,7 @@ nav_order: 1
 # DASH Low Latency from player perspective
 {: .no_toc }
 
-[![HitCount](http://hits.dwyl.com/hongfeih/hongfeih/awesomestreaming.svg)](http://hits.dwyl.com/hongfeih/hongfeih/awesomestreaming)
+![](https://visitor-badge.laobi.icu/badge?page_id=ll-dash)
 
 ## Table of contents
 {: .no_toc .text-delta }
