@@ -14,8 +14,8 @@
 
 ## Low latency Solution
 
-* Add low latency support into spec.
+* Add low latency considerations into spec.
   * [DASH Low Latency from player perspective](dashll.md)
   * [Low Latency HLS from player perspective](llhls.md)
-* Introduce CMAF \(Chunked encoding and transfer\)
+* Use CMAF \(Chunked encoding and transfer\)
 
