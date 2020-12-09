@@ -101,19 +101,19 @@ fileSequence272.mp4
 
 Eliminating unnecessary round trips is critical when delivering low-latency streams at global scale.
 
-In 2019, Apple have now also introduced HTTP2 Server Push into the HLS specifications. Essentially, the player should pass again via Query String, this time a boolean of _\_HLS\_push=1/0_, whether or not the most recent partial segment at the bottom of the m3u8 list should be pushed in parallel with the m3u8 response.
+In 2019, Apple have introduced HTTP2 Server Push into the HLS specifications. Essentially, the player should pass again via Query String, a boolean of _\_HLS\_push=1/0_, whether or not the most recent partial segment at the bottom of the m3u8 list should be pushed in parallel with the m3u8 response.
 
-Historically, the HLS client would need to download the full m3u8 response, enumerate all the sequences and then only after that make a separate HTTP request for the segment, often wasting several hundred milliseconds in the process.
+And historically, the HLS client would need to download the full m3u8 response, enumerate all the sequences and then only after that make a separate HTTP request for the segment, often wasting several hundred milliseconds in the process.
 
-![No alt text provided for this image](https://media.licdn.cn/dms/image/C5612AQFN6yAGDckKPA/article-inline_image-shrink_1000_1488/0?e=1608163200&v=beta&t=UC_qN02Yy4zU37hjBL4e2bNROI8a8Hsm_A45n-IxQa4)
+![](https://media.licdn.cn/dms/image/C5612AQFN6yAGDckKPA/article-inline_image-shrink_1000_1488/0?e=1608163200&v=beta&t=UC_qN02Yy4zU37hjBL4e2bNROI8a8Hsm_A45n-IxQa4)
 
-CDNs will need to support HTTP2 push and be able to intrinsically understand which object to push along side a cached m3u8 response for this feature to be of significant value. Seems it not easy to adopt. \[10\]: 2:00
+But CDNs will need to support HTTP2 push and be able to intrinsically understand which object to push along side a cached m3u8 response for this feature to be of significant value. Seems it not easy to adopt. \[10: 2:00\]
 
 So Apple introduced a new tag, `EXT-X-PRELOAD-HINT`, to inform clients of upcoming Partial Segments and Media Initialization Sections. A client can issue a GET request for a hinted resource in advance; the server responds to the request as soon as the media becomes available.
 
 | Item | Description |
 | :--- | :--- |
-| TYPE | The value is an enumerated-string that specifies the type of the hinted resource. If the value is PART, the resource is a Partial Segment. If the value is MAP, the resource is a Media Initialization Section. This attribute is REQUIRED. |
+| TYPE | The value is an enumerated-string that specifies the type of the hinted resource. If the value is **PART**, the resource is a Partial Segment. If the value is **MAP**, the resource is a Media Initialization Section. This attribute is REQUIRED. |
 | URI | The value is a URI identifying the hinted resource. It MUST match the URI that will be subsequently added to the Playlist as a non-hinted resource. |
 | BYTERANGE-START | The value is the byte offset of the first byte of the hinted resource, from the beginning of the resource identified by the URI attribute. This attribute is OPTIONAL. Its absence implies a value of 0. |
 | BYTERANGE-LENGTH | The value is the length of the hinted resource. This attribute is OPTIONAL. Its absence indicates that the last byte of the hinted resource is the last byte of the resource identified by the URI attribute. |
@@ -127,7 +127,7 @@ For example:
 #EXT-X-PRELOAD-HINT:TYPE=PART,URI="filePart273.3.mp4"
 ```
 
-* After part “filePart273.2.mp4” is downloaded, player don’t need to wait for playlist reload, instead, can try to get “filePart273.3.mp4” directly.
+* After part “filePart273.2.mp4” is downloaded, player don’t need to wait for playlist reload, instead, can start to get “filePart273.3.mp4” directly.
 
 For SSAI case, “**TYPE=MAP** is needed for different initialization segment:
 
