@@ -353,7 +353,7 @@ For example:
 
 ![](../.gitbook/assets/delta-4.png)
 
-![](../.gitbook/assets/image%20%2810%29.png)
+![](../.gitbook/assets/image%20%2812%29.png)
 
 ## Rendition Reports <a id="rendition-reports"></a>
 
