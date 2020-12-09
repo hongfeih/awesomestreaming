@@ -17,7 +17,11 @@
 
 ## Client-Server Time Synchronization <a id="client-server-time-synchronization"></a>
 
-UTCTiming element defined in MPD specifies a time source that can be used to adjust the client clock for calculations that involve the client’s wallclock time such as segment availability calculations and latency calculations, etc.
+UTCTiming element defined in MPD specifies a time source that can be used to adjust the client clock for calculations that involve the client’s wall clock time such as segment availability calculations and latency calculations, etc.
+
+```text
+<UTCTiming schemeIdUri="urn:mpeg:dash:utc:http-iso:2014" value="./game25006_hd_cmaf_number.isotime" />
+```
 
 Normally, time offset can be calculated by UTCTiming \(**request only once**\):
 
@@ -31,46 +35,58 @@ Although there are SegmentBase and SegmentList to describe playlist of Adapatati
 
 According to DASH IOP [9.7. Determining the live edge](https://dashif-documents.azurewebsites.net/DASH-IF-IOP/master/DASH-IF-IOP.html#live-edge-calculation), live edge can be calculated as:
 
-```text
-    live edge = availability_end - MPD@maxSegmentDuration
-```
+> live edge = availability\_end - MPD@maxSegmentDuration - MPD@suggestedPresentationDelay
 
 Where availability\_end is end position of availability window, and availability window is like this: 
 
 ![](https://dashif-documents.azurewebsites.net/DASH-IF-IOP/master/Images/Timing/AvailabilityWindow.png)
 
+* Practically, for SegmentTemplate time case, the end time of last segment of last period is treated as availability\_end.
 * TotalAvailabilityTimeOffset is the sum of all @availabilityTimeOffset values that apply to the representation
 
-Practically For SegmentTemplate time case, the end time of last segment of last period is treated as availability\_end.
-
-In order to reduce start load latency, DASH introduced availabilityTimeOffset.
+In order to reduce start latency, DASH introduced availabilityTimeOffset.
 
 | item | Remark |
 | :--- | :--- |
 | availabilityTimeComplete | specifies if all Segments of all associatedRepresentation are complete at the adjusted availability start time. Set to “false” for low latency case to indicate segment may not be finished when it becomes available. |
 | availabilityTimeOffset | specifies an offset to define the adjusted segment To signal the segment availability once the first chunk is completed, set to \(SegmentTemplate@duration - Chunk duration\)  ![](../.gitbook/assets/availabilitytimeoffset.png)  |
 
-For example:
+For example \(SegmentTemplate number case\):
 
-**SegmentTemplate number case**
+```text
+<?xml version="1.0" encoding="utf-8" ?>
+<!--Endeavor Streaming Server 6.3.8.20200519.28326 -->
+<MPD type="dynamic" maxSegmentDuration="PT2.000S" minBufferTime="PT1.000S"
+    minimumUpdatePeriod="PT3M20.000S" suggestedPresentationDelay="PT12.000S" 
+    timeShiftBufferDepth="PT6.000S" availabilityStartTime="1970-01-01T00:00:00Z">
+    <Period id="B583433BF94A42479DB816CC56631482" start="PT445062H9M39.468S">
+        <AdaptationSet id="0" contentType="video" mimeType="video/mp4" segmentAlignment="true" startWithSAP="1" subsegmentAlignment="true" subsegmentStartsWithSAP="1">
+            <SegmentTemplate timescale="1000000" presentationTimeOffset="1602223779468329" availabilityTimeComplete="false" availabilityTimeOffset="1.800000" duration="2000000" startNumber="801111868" media="$RepresentationID$-$Number$.cm4s" initialization="$RepresentationID$-init.m4s" />
+            <Representation width="400" height="224" frameRate="30000/1001" sar="1:1" codecs="avc1.4D400D" id="game25006_hd_400_video" bandwidth="400000" />
+            <Representation width="640" height="360" frameRate="30000/1001" sar="1:1" codecs="avc1.4D401E" id="game25006_hd_800_video" bandwidth="800000" />
+            <Representation width="960" height="540" frameRate="30000/1001" sar="1:1" codecs="avc1.4D401F" id="game25006_hd_1600_video" bandwidth="1600000" />
+            <Representation width="1280" height="720" frameRate="30000/1001" sar="1:1" codecs="avc1.4D4020" id="game25006_hd_3000_video" bandwidth="3000000" />
+        </AdaptationSet>
+    </Period>
+    <UTCTiming schemeIdUri="urn:mpeg:dash:utc:http-iso:2014" value="./game25006_hd_cmaf_number.isotime" />
+</MPD>
+```
 
 * **Normal player**
   * now = \(2020-10-13T08:11:06.069263Z\) = 1602576666.069263
-  * availability window start point = 1602576666.069263 - 6 = 1602576660.069263
+  * availability window start point = 1602576666.069263 - MPD@timeShiftBufferDepth = 1602576660.069263
   * availability window end point = 1602576666.069263
   * Live edge = 1602576666.869263 - MPD@maxSegmentDuration - MPD@suggestedPresentationDelay = 1602576652.869263
   * Segment index to start = SegmentTemplate@startNumber + \(Live edge - Period@start\) / SegmentTemplate@duration = 801111868 + \(1602576652.869263 - 1602223779.468\)/2 = 801111868 + 176436 = 801288304
 * **Low latency player**
   * now = \(2020-10-13T08:11:06.069263Z\) = 1602576666.069263
-  * availability window start point = 1602576666.069263 - 6 = 1602576660.069263
+  * availability window start point = 1602576666.069263 - MPD@timeShiftBufferDepth = 1602576660.069263
   * availability window end point = 1602576666.069263 + SegmentTemplate@AvailabilityTimeOffset = 1602576667.869263
   * Live edge = 1602576667.869263 - MPD@maxSegmentDuration = 1602576665.869263
   * Segment index to start = SegmentTemplate@startNumber + \(Live edge - Period@start\) / SegmentTemplate@duration = 801111868 + \(1602576665.869263 - 1602223779.468\)/2 = 801111868 + 176443 = 801288311
 * Time difference = 1602576665.869263 - 1602576652.869263 = 13s
 
-**SegmentTemplate time case**: TBD
-
-Practically, player can start very close to the live edge even without the low-latency techniques if the network can sustain it, or on the other hand, player can start further away from the live edge to allow initial bandwidth estimations using full media chunks for better user experience.
+But practically, player can start very close to the live edge even without the low-latency techniques if the network can sustain it, or on the other hand, player can start further away from the live edge to allow initial bandwidth estimations using full media chunks for better user experience.
 
 Player can archive latency target by [playbackRate adjustment](dashll.md#service-description) after playback started.
 
@@ -93,10 +109,10 @@ A ServiceDescription element should be used to specify the service provider’s 
   | Item | Description |
   | :--- | :--- |
   | target | The service provider’s preferred presentation latency in milliseconds computed relative the producer reference time. |
-  | max | The service provider’s indication about the maximum presentation latency in milliseconds. **Indicates a content provider’s desire for the content not to be presented if the latency exceeds the maximum latency.** |
-  | min | The service provider’s indication about minimum presentation latency in milliseconds for example to avoid inconsistencies with second screen applications, overlays, etc. |
+  | max | The service provider’s indication about the maximum presentation latency in milliseconds. **Indicates a content provider’s desire for the content not to be presented if the latency exceeds the maximum latency \(jump to live?\).** |
+  | min | The service provider’s indication about minimum presentation latency in milliseconds for example to avoid inconsistencies with second screen applications, overlays, etc. \(For smooth playback as well\) |
 
-* \[**PlaybackRate**\]\[playbackRate\]: playback rate boundaries may be specified that define the allowed range for playback acceleration/deceleration by the playout client to fulfill the latency requirements.
+* **PlaybackRate**: playback rate boundaries may be specified that define the allowed range for playback acceleration/deceleration by the play-out client to fulfill the latency requirements.
 
   | Item | Description |
   | :--- | :--- |
@@ -105,24 +121,28 @@ A ServiceDescription element should be used to specify the service provider’s 
 
 So, for example, if following ServiceDescription defined in MPD:
 
-player need to:
+```text
+<ServiceDescription id="0">
+  <Latency target="3500" min="2000" max="10000"/>
+  <PlaybackRate min="0.9" max="1.1"/>
+</ServiceDescription>
+```
 
-* Should seek to live when latency is larger than 10s
-* Should change playback rate in range \[0.9, 1.1\] based on a algorithm when latency is no in \[desired latency - tolerance, desired latency + tolerance\]
+Player should:
+
+* Change playback rate in range \[0.9, 1.1\] based on a algorithm when latency is in \[2s, 10s\] to maintain latency as 3.5s
+  * Avoid change too frequently \(audio issue on Chrome, etc.\)
+* Seek to live when latency is larger than 10s
 
 ## Bandwidth Estimation <a id="bandwidth-estimation"></a>
 
-One consequence of segment data being delivered as fast as it is produced is that the segment download time is ~equal to the segment duration.
+One consequence of segment data being delivered as fast as it is produced is that the segment download time is equal to the segment duration.
 
-Conventional throughput estimation algorithms will always produce the answer that throughput equals bandwidth and hence the player will never switch up.
+Conventional throughput estimation algorithms will always produce the answer that throughput equals download bandwidth \(estimatedBW = downloadedSize / downloadDuration\) and hence the player will never switch up.
 
-```text
-estimatedBW = downloadedSize / downloadDuration
-```
+Research for better ways to estimate bandwidth in chunked low-latency delivery scenarios is ongoing in academia and throughout the streaming industry:
 
-Research for better ways to estimate bandwidth in chunked low-latency delivery scenarios is ongoing in academia and throughout the streaming:
-
-* [BOLA](https://arxiv.org/pdf/1601.06748.pdf): chooses bitrate based on buffer level
+* [BOLA](https://arxiv.org/pdf/1601.06748.pdf): choose bitrate based on buffer level
   * Reference implementation: [BolaRule.js](https://github.com/Dash-Industry-Forum/dash.js/blob/development/src/streaming/rules/abr/BolaRule.js)
 * [ACTE](https://dl.acm.org/doi/10.1145/3304112.3325611): a sliding window to accurately measure the available bandwidth and an online linear adaptive filter to predict the bandwidth into the future
 
@@ -130,10 +150,16 @@ Research for better ways to estimate bandwidth in chunked low-latency delivery s
 
 The Producer Reference Time supplies times corresponding to the production of associated media. This information permits among others to:
 
-* provide media clients with information to enable consumption and production to proceed at equivalent rates, thus avoiding possible buffer overflow or underflow
-* enable **measuring and potentially controlling the latency** between the production of the media time and the playout.
+* Provide media clients with information to enable consumption and production to proceed at equivalent rates, thus avoiding possible buffer overflow or underflow
+* Enable **measuring and potentially controlling the latency** between the production of the media time and the play-out.
 
-This can be achieved by specifying a so-called _Producer Reference Time_ either in the segments \(i.e. inband as prft box \(defined in ETSI TS 126 247 [G.5 Producer reference box](https://www.etsi.org/deliver/etsi_ts/126200_126299/126247/12.03.00_60/ts_126247v120300p.pdf)\) or in the MPD.
+This can be achieved by specifying a so-called _**Producer Reference Time**_ either in the segments \(i.e. inband as prft box \(defined in ETSI TS 126 247 [G.5 Producer reference box](https://www.etsi.org/deliver/etsi_ts/126200_126299/126247/12.03.00_60/ts_126247v120300p.pdf)\) or in the MPD.
+
+```text
+<ProducerReferenceTime id="0" inband="true" type="encoder" wallclockTime="2020-02-19T10:42:02.667Z" presentationTime="1000">
+	<UTCTiming schemeIdUri="urn:mpeg:dash:utc:http-xsiso:2014" value="http://time.akamai.com/?iso&ms" />
+</ProducerReferenceTime>
+```
 
 * type can be “encoder” or “captured”:
   * “encoder”: wallclockTime of encoder output for frame at specific presentationTime, for calculation of Encoder-Display Latency \(EDL\)
@@ -157,22 +183,23 @@ This can be achieved by specifying a so-called _Producer Reference Time_ either 
 * presentation latency PL of a presentation time PT presented at wall clock time WC in seconds is determined as:
 
   ```text
-  PL = (ProducerReferenceTime@wallclockTime – UTCTiming@wallclockTime) - (currentPresentationTime - (ProducerReferenceTime@presentationTime – MPD@presentationTimeOffset)
+  PL = (ProducerReferenceTime@wallclockTime – UTCTiming@wallclockTime) 
+        - (PT - (ProducerReferenceTime@presentationTime – MPD@presentationTimeOffset))
   ```
 
 Currently no \(rare\) player support it, instead, for the purpose of measuring latency, PL can be calculated as:
 
 ```text
-PL = Now@client + time offset - currentPresentationTime
+PL = Now@client + time offset - PT
 ```
 
-* time offset = Now@client - UTCTiming@server which mentioned in 1. Client-Server Time Synchronization
+* time offset = Now@client - UTCTiming@server which mentioned in [Client-Server Time Synchronization](dashll.md#client-server-time-synchronization).
 
 ## Resynchronization Points <a id="resynchronization-points"></a>
 
 Resync element permits the player to parse the segment to locate the Resynchronization Point.
 
-* Normally in **sidx box**:
+* Normally in **sidx** box:
   * This is most easily used for Segments that are fully available on the network.
   * So not very useful for live, especially low latency
 
@@ -223,7 +250,17 @@ Resync elements specify segment properties like chunk duration and chunk size wh
 * Switch representations mid-segment
 * Resynchronize at mid-segment position after buffer underruns
 
-Resync element is defined in MPEG-DASH ISO/IEC 23009-1:2020/Amd.1, still on the way, don’t know the details how it used in practice.
+For example:
+
+```text
+[1]<Resync type="0" dT="500000" dImin="0.03125" dImax="0.09375" /> 
+<SegmentTemplate timescale="1000000" duration="8000000" availabilityTimeOffset="7.500" availabilityTimeComplete="false" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="1" />
+<Representation id="0" mimeType="video/mp4" codecs="avc1.640016" bandwidth="500000" width="1280" height="720" sar="1:1" qualityRanking="5" />
+...
+<Representation id="3" mimeType="video/mp4" codecs="avc1.640016" bandwidth="3000000" width="960" height="540" sar="1:1" qualityRanking="2">
+	[2]<Resync type="2" dT="1000000" dImin="0.1" dImax="0.15" marker="TRUE" />
+</Representation>
+```
 
 \[1\] Indicates that
 
@@ -238,7 +275,11 @@ Resync element is defined in MPEG-DASH ISO/IEC 23009-1:2020/Amd.1, still on the 
 * The maximum time delta between these points is 1s \(1,000,000/1,000,000\)
 * The minimum distance in bytes between two Resynchronization Points is 30,000B \(0.1x300,000\)
 * The maximum distance in bytes between two Resynchronization Points is 45,000B \(0.15x300,000\)
-* As the @marker flag is set to true, a DASH client may search for the resync point using a box-parsing algorithm.
+* As the @marker flag is set to **TRUE**, a DASH client may search for the resync point using a box-parsing algorithm.
+
+{% hint style="info" %}
+Resync element is defined in MPEG-DASH ISO/IEC 23009-1:2020/Amd.1, still on the way, don’t know the details how it used in practice.
+{% endhint %}
 
 ##   References <a id="references"></a>
 
