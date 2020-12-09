@@ -216,13 +216,13 @@ Not like DASHLL, no good ABR mentioned publicly for LL-HLS, so it’s all depend
 
 ## Presentation Latency Calculation <a id="presentation-latency-calculation"></a>
 
-No like LL-DASH with ProducerReferenceTime and Client-Server Time Synchronization, so player has to calculate live latency with:
+As there is no such parameters as DASHLL with ProducerReferenceTime and Client-Server Time Synchronization, player has to calculate live latency with:
 
 * Based on `EXT-X-PROGRAM-DATE-TIME` in manifest
 * Client-Server Time Synchronization manually \(calculate time offset\) or trust local system time \(time offset = 0\)
 * Find the relative-absolute time mapping of startup part
   * Calculate Relative time which is the accumulated duration to start part
-  * Calculate Absolute time by adding last `EXT-X-PROGRAM-DATE-TIME` to the accumulated duration after it
+  * Calculate Absolute time by adding last `EXT-X-PROGRAM-DATE-TIME` to the accumulated duration after it.
 
     > All Media Playlists have EXT-PROGRAM-DATE-TIME tags. \[1\]
 
@@ -295,8 +295,7 @@ fileSequence1091144.mp4
   * Relative time = 15 \* 4 + 3 = 63s
   * Absolute time = 2020-10-16T02:53:41.265Z + \(3 \* 4 + 3\) = 1602816821.265 + 15 = 1602816836.265
   * TimeGap = 1602816836.265 - 63 = 1602816773.265
-* player@mediaTime = 70s
-* Now@client = 1602816846.415, use local system time
+* player@mediaTime = 70s; Now@client = 1602816846.415, use local system time
 * PresentationTime = 70 + 1602816773.265 = 1602816843.265
 * Latency = 1602816846.415 - 1602816843.265 = 3.15s
 
