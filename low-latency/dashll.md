@@ -1,5 +1,7 @@
 # DASH Low Latency from player perspective
 
+
+
 ![](../.gitbook/assets/liveedge.png)
 
 4 noteworthy items from [DASH IF Guidelines on Low Latency](https://dashif.org/docs/CR-Low-Latency-Live-r8.pdf):
@@ -158,7 +160,9 @@ For example:
 Resync element is defined in MPEG-DASH ISO/IEC 23009-1:2020/Amd.1, still on the way, don’t know the details how it used in practice.
 {% endhint %}
 
-## Live Edge Calculation <a id="live-edge-calculation"></a>
+## Implementation considerations <a id="live-edge-calculation"></a>
+
+### Live Edge Calculation
 
 Although there are SegmentBase and SegmentList to describe playlist of AdapatationSet/Representation, these 2 types are rarely used practically, so only 2 cases of SegmentTemplate \(time/number\) are mentioned here.
 
@@ -219,7 +223,7 @@ But practically, player can start very close to the live edge even without the l
 
 Player can archive latency target by [playbackRate adjustment](dashll.md#service-description) after playback started.
 
-## Presentation Latency Calculation <a id="presentation-latency-calculation"></a>
+### Presentation Latency Calculation
 
 The Producer Reference Time supplies times corresponding to the production of associated media. This information permits among others to:
 
@@ -268,7 +272,7 @@ PL = Now@client + time offset - PT
 
 * time offset = Now@client - UTCTiming@server which mentioned in [Client-Server Time Synchronization](dashll.md#client-server-time-synchronization).
 
-## Bandwidth Estimation <a id="bandwidth-estimation"></a>
+### Bandwidth Estimation
 
 One consequence of segment data being delivered as fast as it is produced is that the segment download time is equal to the segment duration.
 

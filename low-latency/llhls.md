@@ -220,7 +220,9 @@ fileSequence1094709.mp4
 
 
 
-## Live Edge Calculation <a id="live-edge-calculation"></a>
+## Implementation considerations
+
+### Live Edge Calculation
 
 Similar with Latency@target of DASH-LL, `PART-HOLD-BACK` is the service provider’s preferred presentation latency, which can be used to calculate live edge.
 
@@ -307,7 +309,7 @@ fileSequence272.mp4
 
 ##  <a id="bandwidth-estimation"></a>
 
-## Presentation Latency Calculation <a id="presentation-latency-calculation"></a>
+### Presentation Latency Calculation
 
 As there is no such parameters as DASHLL with ProducerReferenceTime and Client-Server Time Synchronization, player has to calculate live latency with:
 
@@ -396,7 +398,7 @@ fileSequence1091144.mp4
 * PresentationTime = 70 + 1602816773.265 = 1602816843.265
 * Latency = 1602816846.415 - 1602816843.265 = 3.15s
 
-## Bandwidth Estimation <a id="bandwidth-estimation"></a>
+### Bandwidth Estimation
 
 Similar with LL-DASH, transferring small sub-segment media pieces in the LL-HLS case likely suffers from [estimation inaccuracies caused by small transfer sizes](https://docs.google.com/document/d/1e3jVkZ6nxNWgCqTNibqV8uJcKo8d597XVl3nJkY7P8c/edit#heading=h.omecbu2809cn). \[7\]
 
