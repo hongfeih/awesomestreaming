@@ -34,6 +34,10 @@ According to test result of Akamai
 * DASH-LL: ~20 requests/min \(10 audios and 10 videos, manifest once only for template number case\)
 * LL-HLS: ~720 requests/min \(audio playlist: 180, audio: 180, video playlist: 180, video: 180\)
 
+![](../.gitbook/assets/image%20%2811%29.png)
+
+http/2 push of LL-HLS can reduce CDN load, but had been replaced by "Preload Hint" as "_Not compatible with some delivery models_". "Preload Hint" can also be used to "_trigger global CDN cache fill_" to enhance the performance.
+
 ![](../.gitbook/assets/push-2.png)
 
 ##   References <a id="references"></a>
