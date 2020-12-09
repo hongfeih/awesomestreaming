@@ -15,7 +15,7 @@ While LL-HLS uses small independent chunk files:
 * Not that small chunk size \(suggested 1s per chunk\)
 * Small chunk size also cause inaccurate estimation
 
-![HLS blog 2\_Comparison](https://www.theoplayer.com/hs-fs/hubfs/Blog/HLS%20blog%202_Comparison.png?width=660&name=HLS%20blog%202_Comparison.png)
+![](https://www.theoplayer.com/hs-fs/hubfs/Blog/HLS%20blog%202_Comparison.png?width=660&name=HLS%20blog%202_Comparison.png)
 
 ## Partial Segment Description <a id="part-description"></a>
 
