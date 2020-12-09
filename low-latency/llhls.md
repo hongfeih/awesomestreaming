@@ -200,7 +200,7 @@ fileSequence1078277.mp4
 
 Similar with LL-DASH, transferring small sub-segment media pieces in the LL-HLS case likely suffers from [estimation inaccuracies caused by small transfer sizes](https://docs.google.com/document/d/1e3jVkZ6nxNWgCqTNibqV8uJcKo8d597XVl3nJkY7P8c/edit#heading=h.omecbu2809cn). \[7\]
 
-According to preferences \[6\]/\[7\]:
+According to preferences \[6\] and \[7\]:
 
 > “Don’t make the assumption that measurement errors are normally distributed independent of the transfer size, because small transfers \(or transfers taking only a short time\) seem to get a higher share of additional measurement errors and thus should be weighted even less. “
 
@@ -210,7 +210,9 @@ According to preferences \[6\]/\[7\]:
 
 ​ → So try to reuse connection, or take connection time out of bandwidth calculation.
 
-Currently no good ABR mentioned for LL-HLS, so it’s all depends on bandwidth.
+{% hint style="info" %}
+Not like DASHLL, no good ABR mentioned publicly for LL-HLS, so it’s all depends on bandwidth currently.
+{% endhint %}
 
 ## Presentation Latency Calculation <a id="presentation-latency-calculation"></a>
 
