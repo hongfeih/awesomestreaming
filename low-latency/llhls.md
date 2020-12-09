@@ -97,7 +97,7 @@ fileSequence272.mp4
   * Or need continue to find the one with “INDEPENDENT=YES”
 * Time difference = 4.00008 + 4.00008 = 8s
 
-## Preload hints and blocking of Media downloads
+## Preload hints
 
 Eliminating unnecessary round trips is critical when delivering low-latency streams at global scale.
 
