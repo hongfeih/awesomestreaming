@@ -146,7 +146,9 @@ When a client issues an HTTP GET to request a Media Playlist update, it can add 
 | \_HLS\_msn=M | Player will get response until the Playlist contains any Partial Segment with a Media Sequence Number of M |
 | \_HLS\_part=N | When the Playlist URI contains both an \_HLS\_msn directive and an \_HLS\_part directive, Player will get response until the Playlist contains any Partial Segment with Part Index N and with a Media Sequence Number of M |
 
+{% hint style="success" %}
 Player can request playlist reload while requesting last part/segment in the playlist including preload-hints part.
+{% endhint %}
 
 For example:
 
