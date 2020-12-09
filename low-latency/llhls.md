@@ -1,6 +1,6 @@
 # Low Latency HLS from player perspective
 
-## 1. Delivery Directives <a id="delivery-directives"></a>
+## Delivery Directives <a id="delivery-directives"></a>
 
 The `EXT-X-SERVER-CONTROL` tag allows the Server to indicate support for Delivery Directives:
 
@@ -12,7 +12,7 @@ The `EXT-X-SERVER-CONTROL` tag allows the Server to indicate support for Deliver
 | PART-HOLD-BACK | The value is a decimal-floating-point number of seconds that indicates the server-recommended minimum distance from the end of the Playlist at which clients should begin to play or to which they should seek when playing in Low-Latency Mode. Its value MUST be at least twice the Part Target Duration. Its value SHOULD be at least three times the Part Target Duration. If different Renditions have different Part Target Durations then PART-HOLD-BACK SHOULD be at least three times the maximum Part Target Duration. |
 | CAN-BLOCK-RELOAD | The value is an enumerated-string whose value is YES if the server supports Blocking Playlist Reload. |
 
-## 2. Live Edge Calculation <a id="live-edge-calculation"></a>
+## Live Edge Calculation <a id="live-edge-calculation"></a>
 
 Similar with Latency@target of DASH-LL, `PART-HOLD-BACK` is the service provider’s preferred presentation latency, which can be used to calculate live edge.
 
@@ -97,6 +97,8 @@ fileSequence272.mp4
   * Or need continue to find the one with “INDEPENDENT=YES”
 * Time difference = 4.00008 + 4.00008 = 8s
 
+## Preload hints and blocking of Media downloads
+
 Eliminating unnecessary round trips is critical when delivering low-latency streams at global scale.
 
 In 2019, Apple have now also introduced HTTP2 Server Push into the HLS specifications. Essentially, the player should pass again via Query String, this time a boolean of _\_HLS\_push=1/0_, whether or not the most recent partial segment at the bottom of the m3u8 list should be pushed in parallel with the m3u8 response.
@@ -131,7 +133,7 @@ For SSAI case, “**TYPE=MAP** is needed for different initialization segment:
 
 ![](../.gitbook/assets/hint-1.png)
 
-## 3. Blocking of Playlist reload <a id="blocking-of-playlist-reload"></a>
+## Blocking of Playlist reload <a id="blocking-of-playlist-reload"></a>
 
 To support efficient client notification of new Media Segments and Partial Segments, Low-Latency HLS introduces the ability to block a Playlist reload request.
 
@@ -192,7 +194,7 @@ fileSequence1078277.mp4
     * As `EXT-X-TARGETDURATION` is 4 and `PART-TARGET` is 1.004000, so this segment is not finished
     * Or will move to next new segment 1077724
 
-## 4. Bandwidth Estimation <a id="bandwidth-estimation"></a>
+## Bandwidth Estimation <a id="bandwidth-estimation"></a>
 
 Similar with LL-DASH, transferring small sub-segment media pieces in the LL-HLS case likely suffers from [estimation inaccuracies caused by small transfer sizes](https://docs.google.com/document/d/1e3jVkZ6nxNWgCqTNibqV8uJcKo8d597XVl3nJkY7P8c/edit#heading=h.omecbu2809cn). \[7\]
 
@@ -208,7 +210,7 @@ According to preferences \[6\]/\[7\]:
 
 Currently no good ABR mentioned for LL-HLS, so it’s all depends on bandwidth.
 
-## 5. Presentation Latency Calculation <a id="presentation-latency-calculation"></a>
+## Presentation Latency Calculation <a id="presentation-latency-calculation"></a>
 
 No like LL-DASH with ProducerReferenceTime and Client-Server Time Synchronization, so player has to calculate live latency with:
 
@@ -294,7 +296,7 @@ fileSequence1091144.mp4
 * PresentationTime = 70 + 1602816773.265 = 1602816843.265
 * Latency = 1602816846.415 - 1602816843.265 = 3.15s
 
-## 6. Generation of Partial Segments <a id="generation-of-partial-segments"></a>
+## Generation of Partial Segments <a id="generation-of-partial-segments"></a>
 
 Partial segments are advertised using a new `EXT-X-PART` tag.
 
@@ -307,7 +309,7 @@ Partial segments are advertised using a new `EXT-X-PART` tag.
 
 ![](https://bitmovin.com/wp-content/uploads/2020/08/Screenshot-2020-08-10-at-11.30.38.png)
 
-## 7. Playlist Delta Updates <a id="playlist-delta-updates"></a>
+## Playlist Delta Updates <a id="playlist-delta-updates"></a>
 
 Player transfer playlists more frequently with Low-Latency HLS. To reduce transfer cost by removing unnesseray duplicated contents, `EXT-X-SKIP` tag is introduced to update replace a considerable portion of the Playlist that the client already has.
 
@@ -341,7 +343,7 @@ For example:
 
 ![](../.gitbook/assets/delta-4.png)
 
-## 8. Rendition Reports <a id="rendition-reports"></a>
+## Rendition Reports <a id="rendition-reports"></a>
 
 When playing at low latency, the client must be able to switch renditions with a minimum number of round trips in order to perform bit-rate adaptation. To support this, the server adds Rendition Reports on the other renditions in the Master Playlist to each Media Playlist. The `EXT-X-RENDITION-REPORT` tag carries a Rendition Report and provides information such as the last Media Sequence Number and Part currently in the Media Playlist of that rendition.
 
