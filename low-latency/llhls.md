@@ -367,10 +367,8 @@ When playing at low latency, the client must be able to switch renditions with a
 
 > A server MAY omit adding an attribute to an EXT-X-RENDITION-REPORT tag - even a mandatory attribute - if its value is the same as that of the Rendition Report of the Media Playlist to which the EXT-X-RENDITION-REPORT tag is being added. \[1\]
 
-* Consider last msn and part of target rendition in ABR algorithms such as:
-  * Not switch to renditions LAST-MSN and LAST-PART smaller than current rendition even choosen by ABR algorithms
-  * Encourage to switch to renditions LAST-MSN and LAST-PART larger than current rendition
-* Request the next rendition \(?\)
+* Allows client to load latest Playlist when switching bit rates
+  * with URI and LAST-MSN/LAST-PART
 
 For example:
 
@@ -409,7 +407,8 @@ fileSequence1094709.mp4
 #EXT-X-RENDITION-REPORT:URI="/cmaf/media2/lowLatencyHLS.m3u8",LAST-MSN=1094114,LAST-PART=1
 ```
 
-* Not switch to “/cmaf/media1/lowLatencyHLS.m3u8” as LAST-MSN 1094113 of it is smaller than of current rendition.
+* When need to switch to "/cmaf/media1/lowLatencyHLS.m3u8", request playlist with  "/cmaf/media1/lowLatencyHLS.m3u8?\_HLS\_msn=1094113&\_HLS\_part=**2**"
+  * Or  more aggressively "/cmaf/media1/lowLatencyHLS.m3u8?\_HLS\_msn=1094113&\_HLS\_part=**3**"
 
 ##   References <a id="references"></a>
 
