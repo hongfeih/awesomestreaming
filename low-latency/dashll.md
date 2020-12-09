@@ -15,7 +15,7 @@
   * Using non-chunked segments whose duration &lt; 30% of target latency
   * Using chunked segments \(CMAF\)
 
-## 1. Client-Server Time Synchronization <a id="client-server-time-synchronization"></a>
+## Client-Server Time Synchronization <a id="client-server-time-synchronization"></a>
 
 UTCTiming element defined in MPD specifies a time source that can be used to adjust the client clock for calculations that involve the client’s wallclock time such as segment availability calculations and latency calculations, etc.
 
@@ -25,7 +25,7 @@ Normally, time offset can be calculated by UTCTiming \(**request only once**\):
 time offset = UTCTiming@server - Now@client
 ```
 
-## 2. Live Edge Calculation <a id="live-edge-calculation"></a>
+## Live Edge Calculation <a id="live-edge-calculation"></a>
 
 Although there are SegmentBase and SegmentList to describe playlist of AdapatationSet/Representation, these 2 types are rarely used practically, so only 2 cases of SegmentTemplate \(time/number\) are mentioned here.
 
@@ -74,7 +74,7 @@ Practically, player can start very close to the live edge even without the low-l
 
 Player can archive latency target by [playbackRate adjustment](dashll.md#service-description) after playback started.
 
-## 3. CMAF Chunked Delivery <a id="cmaf-chunked-delivery"></a>
+## CMAF Chunked Delivery <a id="cmaf-chunked-delivery"></a>
 
 Compared to an “ordinary” fMP4 segment that has its media payload in a single big mdat box, chunked CMAF allows segments to consist of a sequence of CMAF chunks \(moof+mdat tuples\). In extreme cases, every frame can be put into its own CMAF chunk.
 
@@ -84,7 +84,7 @@ So, player should support partial decoding.
 
 ![](../.gitbook/assets/cmaf.png)
 
-## 4. Service Description <a id="service-description"></a>
+## Service Description <a id="service-description"></a>
 
 A ServiceDescription element should be used to specify the service provider’s expectation.
 
@@ -110,7 +110,7 @@ player need to:
 * Should seek to live when latency is larger than 10s
 * Should change playback rate in range \[0.9, 1.1\] based on a algorithm when latency is no in \[desired latency - tolerance, desired latency + tolerance\]
 
-## 5. Bandwidth Estimation <a id="bandwidth-estimation"></a>
+## Bandwidth Estimation <a id="bandwidth-estimation"></a>
 
 One consequence of segment data being delivered as fast as it is produced is that the segment download time is ~equal to the segment duration.
 
@@ -126,7 +126,7 @@ Research for better ways to estimate bandwidth in chunked low-latency delivery s
   * Reference implementation: [BolaRule.js](https://github.com/Dash-Industry-Forum/dash.js/blob/development/src/streaming/rules/abr/BolaRule.js)
 * [ACTE](https://dl.acm.org/doi/10.1145/3304112.3325611): a sliding window to accurately measure the available bandwidth and an online linear adaptive filter to predict the bandwidth into the future
 
-## 6. Presentation Latency Calculation <a id="presentation-latency-calculation"></a>
+## Presentation Latency Calculation <a id="presentation-latency-calculation"></a>
 
 The Producer Reference Time supplies times corresponding to the production of associated media. This information permits among others to:
 
@@ -168,7 +168,7 @@ PL = Now@client + time offset - currentPresentationTime
 
 * time offset = Now@client - UTCTiming@server which mentioned in 1. Client-Server Time Synchronization
 
-## 7. Resynchronization Points <a id="resynchronization-points"></a>
+## Resynchronization Points <a id="resynchronization-points"></a>
 
 Resync element permits the player to parse the segment to locate the Resynchronization Point.
 
