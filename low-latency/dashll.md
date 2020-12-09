@@ -6,7 +6,7 @@
 
 * At least one **UTCTiming** element with millisecond precision
 * Two operational modes are permitted
-  * **Simple live offering is used by applying @duration signaling and $Number$ based templating** \(suggested\)
+  * Simple live offering is used by applying @duration signaling and $Number$ based templating \(**Suggested**\)
   * Main live offering with the SegmentTimeline as either $Number$ or $Time$ is supported by the proposed updates in MPEG-DASH fourth edition.
 * At least one **ServiceDescription** element shall be present as follows:
   * A Latency element - specifying min, target and max latencies
