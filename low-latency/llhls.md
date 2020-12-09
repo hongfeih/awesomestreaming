@@ -12,6 +12,22 @@ The `EXT-X-SERVER-CONTROL` tag allows the Server to indicate support for Deliver
 | PART-HOLD-BACK | The value is a decimal-floating-point number of seconds that indicates the server-recommended minimum distance from the end of the Playlist at which clients should begin to play or to which they should seek when playing in Low-Latency Mode. Its value MUST be at least twice the Part Target Duration. Its value SHOULD be at least three times the Part Target Duration. If different Renditions have different Part Target Durations then PART-HOLD-BACK SHOULD be at least three times the maximum Part Target Duration. |
 | CAN-BLOCK-RELOAD | The value is an enumerated-string whose value is YES if the server supports Blocking Playlist Reload. |
 
+## Generation of Partial Segments <a id="generation-of-partial-segments"></a>
+
+Partial segments are advertised using a new `EXT-X-PART` tag.
+
+* Only advertised for the most recent segments in the playlist to reduce Playlist bloat
+
+> EXT-X-PART tags SHOULD be removed from the Playlist after they are greater than three Target Durations from the end of the Playlist.\[1\]
+
+* Can be different files
+
+![](https://media.licdn.cn/dms/image/C5612AQHWPy5EqjtOog/article-inline_image-shrink_1000_1488/0?e=1608163200&v=beta&t=dK9IbWzeWHj_iMitgeD0NDrBiVmVo--IYbbrJF76XoI)
+
+* Also can be a same file but at different byte ranges to save round-trips compared to making separate requests for each part
+
+![](https://bitmovin.com/wp-content/uploads/2020/08/Screenshot-2020-08-10-at-11.30.38.png)
+
 ## Live Edge Calculation <a id="live-edge-calculation"></a>
 
 Similar with Latency@target of DASH-LL, `PART-HOLD-BACK` is the service provider’s preferred presentation latency, which can be used to calculate live edge.
@@ -230,6 +246,10 @@ As there is no such parameters as DASHLL with ProducerReferenceTime and Client-S
 * PresentationTime = player@mediaTime + TimeGap
 * Latency = Now@client + time offset \(if any\) - PresentationTime
 
+{% hint style="info" %}
+Also, there is no definition of maximum/minimum latency and maximum/minimum playback rate to control the latency, player have to set all by its own.
+{% endhint %}
+
 For example:
 
 ```text
@@ -299,22 +319,9 @@ fileSequence1091144.mp4
 * PresentationTime = 70 + 1602816773.265 = 1602816843.265
 * Latency = 1602816846.415 - 1602816843.265 = 3.15s
 
-## Generation of Partial Segments <a id="generation-of-partial-segments"></a>
-
-Partial segments are advertised using a new `EXT-X-PART` tag.
-
-* Only advertised for the most recent segments in the playlist to reduce Playlist bloat
-* Can be different files
-
-![](https://media.licdn.cn/dms/image/C5612AQHWPy5EqjtOog/article-inline_image-shrink_1000_1488/0?e=1608163200&v=beta&t=dK9IbWzeWHj_iMitgeD0NDrBiVmVo--IYbbrJF76XoI)
-
-* Also can be a same file but at different byte ranges to save round-trips compared to making separate requests for each part
-
-![](https://bitmovin.com/wp-content/uploads/2020/08/Screenshot-2020-08-10-at-11.30.38.png)
-
 ## Playlist Delta Updates <a id="playlist-delta-updates"></a>
 
-Player transfer playlists more frequently with Low-Latency HLS. To reduce transfer cost by removing unnesseray duplicated contents, `EXT-X-SKIP` tag is introduced to update replace a considerable portion of the Playlist that the client already has.
+Player transfer playlists more frequently with Low-Latency HLS. To reduce transfer cost by removing unnecessary duplicated contents, `EXT-X-SKIP` tag is introduced to  skip a considerable portion of the Playlist that the client already has.
 
 > If a Media Playlist file contains an `EXT-X-SERVER-CONTROL` tag with a CAN-SKIP-UNTIL attribute and no EXT-X-ENDLIST tag, a Client MAY use the \_HLS\_skip Delivery Directive to request Playlist Delta Updates.
 >
@@ -328,7 +335,7 @@ Player transfer playlists more frequently with Low-Latency HLS. To reduce transf
 | :--- | :--- |
 | SKIPPED-SEGMENTS | The value is the count of Media Segments were replaced by the `EXT-X-SKIP` tag. This attribute is REQUIRED. |
 | RECENTLY-REMOVED-DATERANGES | The value is a quoted-string consisting of a tab \(0x9\) delimited list of EXT-X-DATERANGE IDs that have been removed from the Playlist recently. |
-| \_HLS\_skip | YES or v2 v2 for skip EXT-X-DATERANGE in case of CAN-SKIP-DATERANGES supported |
+| \_HLS\_skip | **YES** or **v2** v2 for skip EXT-X-DATERANGE in case of CAN-SKIP-DATERANGES supported |
 
 For example:
 
@@ -340,7 +347,7 @@ For example:
   * segment21.m4s is newly added
   * Player need to merge with previous playlist to get current playlist
 
-![](../.gitbook/assets/delta-1.png) ⇒ ![](../.gitbook/assets/image%20%283%29.png) ⇒ ![](../.gitbook/assets/delta-2.png) 
+![](../.gitbook/assets/delta-1.png) ⇒ ![](../.gitbook/assets/delta-2.png)⇒![](../.gitbook/assets/image%20%283%29.png)
 
 * For DATERANGE, need request with ?\_HLS\_skip=v2
 
