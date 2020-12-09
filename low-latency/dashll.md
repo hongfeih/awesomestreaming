@@ -29,6 +29,135 @@ Normally, time offset can be calculated by UTCTiming \(**request only once**\):
 time offset = UTCTiming@server - Now@client
 ```
 
+## CMAF Chunked Delivery <a id="cmaf-chunked-delivery"></a>
+
+Compared to an “ordinary” fMP4 segment that has its media payload in a single big mdat box, chunked CMAF allows segments to consist of a sequence of CMAF chunks \(moof+mdat tuples\). In extreme cases, every frame can be put into its own CMAF chunk.
+
+This enables the encoder to produce and the player’s decoder to consume segments in a chunk-by-chunk fashion instead of limiting use to entire segment consumption.
+
+So, player should support partial decoding.
+
+![](../.gitbook/assets/cmaf.png)
+
+## Service Description <a id="service-description"></a>
+
+A ServiceDescription element should be used to specify the service provider’s expectation.
+
+* **Latency**: target latency and minimum/maximum latency boundaries in milliseconds.
+
+  | Item | Description |
+  | :--- | :--- |
+  | target | The service provider’s preferred presentation latency in milliseconds computed relative the producer reference time. |
+  | max | The service provider’s indication about the maximum presentation latency in milliseconds. **Indicates a content provider’s desire for the content not to be presented if the latency exceeds the maximum latency \(jump to live?\).** |
+  | min | The service provider’s indication about minimum presentation latency in milliseconds for example to avoid inconsistencies with second screen applications, overlays, etc. \(For smooth playback as well\) |
+
+* **PlaybackRate**: playback rate boundaries may be specified that define the allowed range for playback acceleration/deceleration by the play-out client to fulfill the latency requirements.
+
+  | Item | Description |
+  | :--- | :--- |
+  | max | The maximum playback rate that the content provider indicates is appropriate for the purposes of automatically adjusting playback latency and buffer occupancy during normal playback, where 1.0 is normal playback speed. |
+  | min | The minimum playback rate that the content provider indicates is appropriate for the purposes of automatically adjusting playback latency and buffer occupancy during normal playback, where 1.0 is normal playback speed. |
+
+So, for example, if following ServiceDescription defined in MPD:
+
+```text
+<ServiceDescription id="0">
+  <Latency target="3500" min="2000" max="10000"/>
+  <PlaybackRate min="0.9" max="1.1"/>
+</ServiceDescription>
+```
+
+Player should:
+
+* Change playback rate in range \[0.9, 1.1\] based on a algorithm when latency is in \[2s, 10s\] to maintain latency as 3.5s
+  * Avoid change too frequently \(audio issue on Chrome, etc.\)
+* Seek to live when latency is larger than 10s
+
+## Resynchronization Points <a id="resynchronization-points"></a>
+
+Resync element permits the player to parse the segment to locate the Resynchronization Point, so that player can utilize to
+
+* Join streams mid-segment, based on latency requirements
+* Switch representations mid-segment
+* Resynchronize at mid-segment position after buffer underruns
+
+Normally Resynchronization Points are listed in **sidx** box:
+
+* This is most easily used for Segments that are fully available on the network.
+* So not very useful for live, especially low latency
+
+```text
+aligned(8) class SegmentIndexBox extends FullBox("sidx", version, 0) {
+ unsigned int(32) reference_ID;
+ unsigned int(32) timescale;
+ if (version==0)
+ {
+   unsigned int(32) earliest_presentation_time;
+   unsigned int(32) first_offset;
+ }
+ else
+ {
+   unsigned int(64) earliest_presentation_time;
+   unsigned int(64) first_offset;
+ }
+ unsigned int(16) reserved = 0;
+ unsigned int(16) reference_count;
+ for(i=1; i <= reference_count; i++)
+ {
+   bit (1) reference_type;
+   unsigned int(31) referenced_size;
+   unsigned int(32) subsegment_duration;
+   bit(1) starts_with_SAP;
+   unsigned int(3) SAP_type;
+   unsigned int(28) SAP_delta_time;
+ }
+} 
+```
+
+But for low latency case, Resynchronization Points are signaling in the MPD:
+
+| Item | Description |  |
+| :--- | :--- | :--- |
+| dT | On Adaptation Set level | providing the maximum and nominal duration of each chunk |
+|  | On Representation level | providing the maximum and nominal distance of two random access points |
+| dImax | On Adaptation Set level | providing the maximum size of a chunk. If unknown, parameter may be omitted. |
+|  | On Representation level | providing the maximum size of the data in between the two random access points. If unknown, parameter may be omitted. |
+| dImin | On Adaptation Set level | providing the minimum size of a chunk. If unknown, parameter may be omitted. |
+|  | On Representation level | providing the minimum size of the data in between the two random access points. If unknown, parameter may be omitted. |
+| type | On Adaptation Set level | set to 0 to indicate that these are CMAF chunks without any promise for specific random-access capabilities beyond parsing. |
+|  | On Representation level | set to 1, 2 or 3 to indicate that random access is possible. |
+
+For example:
+
+```text
+[1]<Resync type="0" dT="500000" dImin="0.03125" dImax="0.09375" /> 
+<SegmentTemplate timescale="1000000" duration="8000000" availabilityTimeOffset="7.500" availabilityTimeComplete="false" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="1" />
+<Representation id="0" mimeType="video/mp4" codecs="avc1.640016" bandwidth="500000" width="1280" height="720" sar="1:1" qualityRanking="5" />
+...
+<Representation id="3" mimeType="video/mp4" codecs="avc1.640016" bandwidth="3000000" width="960" height="540" sar="1:1" qualityRanking="2">
+	[2]<Resync type="2" dT="1000000" dImin="0.1" dImax="0.15" marker="TRUE" />
+</Representation>
+```
+
+\[1\] Indicates that
+
+* The point is of type 0 - a CMAF chunk without any promise for specific random-access capabilities.
+* The maximum chunk duration is 500ms \(500,000/1,000,000\)
+* The minimum distance in bytes between two Resynchronization Points is 15,625B \(0.03125x500,000\)
+* The maximum distance in bytes between two Resynchronization Points is 46,875B \(0.09375x500,000\)
+
+\[2\] Indicates that
+
+* The point is of type 2 – a CMAF chunk that can be used for fast access or switching
+* The maximum time delta between these points is 1s \(1,000,000/1,000,000\)
+* The minimum distance in bytes between two Resynchronization Points is 30,000B \(0.1x300,000\)
+* The maximum distance in bytes between two Resynchronization Points is 45,000B \(0.15x300,000\)
+* As the @marker flag is set to **TRUE**, a DASH client may search for the resync point using a box-parsing algorithm.
+
+{% hint style="info" %}
+Resync element is defined in MPEG-DASH ISO/IEC 23009-1:2020/Amd.1, still on the way, don’t know the details how it used in practice.
+{% endhint %}
+
 ## Live Edge Calculation <a id="live-edge-calculation"></a>
 
 Although there are SegmentBase and SegmentList to describe playlist of AdapatationSet/Representation, these 2 types are rarely used practically, so only 2 cases of SegmentTemplate \(time/number\) are mentioned here.
@@ -90,62 +219,6 @@ But practically, player can start very close to the live edge even without the l
 
 Player can archive latency target by [playbackRate adjustment](dashll.md#service-description) after playback started.
 
-## CMAF Chunked Delivery <a id="cmaf-chunked-delivery"></a>
-
-Compared to an “ordinary” fMP4 segment that has its media payload in a single big mdat box, chunked CMAF allows segments to consist of a sequence of CMAF chunks \(moof+mdat tuples\). In extreme cases, every frame can be put into its own CMAF chunk.
-
-This enables the encoder to produce and the player’s decoder to consume segments in a chunk-by-chunk fashion instead of limiting use to entire segment consumption.
-
-So, player should support partial decoding.
-
-![](../.gitbook/assets/cmaf.png)
-
-## Service Description <a id="service-description"></a>
-
-A ServiceDescription element should be used to specify the service provider’s expectation.
-
-* **Latency**: target latency and minimum/maximum latency boundaries in milliseconds.
-
-  | Item | Description |
-  | :--- | :--- |
-  | target | The service provider’s preferred presentation latency in milliseconds computed relative the producer reference time. |
-  | max | The service provider’s indication about the maximum presentation latency in milliseconds. **Indicates a content provider’s desire for the content not to be presented if the latency exceeds the maximum latency \(jump to live?\).** |
-  | min | The service provider’s indication about minimum presentation latency in milliseconds for example to avoid inconsistencies with second screen applications, overlays, etc. \(For smooth playback as well\) |
-
-* **PlaybackRate**: playback rate boundaries may be specified that define the allowed range for playback acceleration/deceleration by the play-out client to fulfill the latency requirements.
-
-  | Item | Description |
-  | :--- | :--- |
-  | max | The maximum playback rate that the content provider indicates is appropriate for the purposes of automatically adjusting playback latency and buffer occupancy during normal playback, where 1.0 is normal playback speed. |
-  | min | The minimum playback rate that the content provider indicates is appropriate for the purposes of automatically adjusting playback latency and buffer occupancy during normal playback, where 1.0 is normal playback speed. |
-
-So, for example, if following ServiceDescription defined in MPD:
-
-```text
-<ServiceDescription id="0">
-  <Latency target="3500" min="2000" max="10000"/>
-  <PlaybackRate min="0.9" max="1.1"/>
-</ServiceDescription>
-```
-
-Player should:
-
-* Change playback rate in range \[0.9, 1.1\] based on a algorithm when latency is in \[2s, 10s\] to maintain latency as 3.5s
-  * Avoid change too frequently \(audio issue on Chrome, etc.\)
-* Seek to live when latency is larger than 10s
-
-## Bandwidth Estimation <a id="bandwidth-estimation"></a>
-
-One consequence of segment data being delivered as fast as it is produced is that the segment download time is equal to the segment duration.
-
-Conventional throughput estimation algorithms will always produce the answer that throughput equals download bandwidth \(estimatedBW = downloadedSize / downloadDuration\) and hence the player will never switch up.
-
-Research for better ways to estimate bandwidth in chunked low-latency delivery scenarios is ongoing in academia and throughout the streaming industry:
-
-* [BOLA](https://arxiv.org/pdf/1601.06748.pdf): choose bitrate based on buffer level
-  * Reference implementation: [BolaRule.js](https://github.com/Dash-Industry-Forum/dash.js/blob/development/src/streaming/rules/abr/BolaRule.js)
-* [ACTE](https://dl.acm.org/doi/10.1145/3304112.3325611): a sliding window to accurately measure the available bandwidth and an online linear adaptive filter to predict the bandwidth into the future
-
 ## Presentation Latency Calculation <a id="presentation-latency-calculation"></a>
 
 The Producer Reference Time supplies times corresponding to the production of associated media. This information permits among others to:
@@ -195,91 +268,17 @@ PL = Now@client + time offset - PT
 
 * time offset = Now@client - UTCTiming@server which mentioned in [Client-Server Time Synchronization](dashll.md#client-server-time-synchronization).
 
-## Resynchronization Points <a id="resynchronization-points"></a>
+## Bandwidth Estimation <a id="bandwidth-estimation"></a>
 
-Resync element permits the player to parse the segment to locate the Resynchronization Point.
+One consequence of segment data being delivered as fast as it is produced is that the segment download time is equal to the segment duration.
 
-* Normally in **sidx** box:
-  * This is most easily used for Segments that are fully available on the network.
-  * So not very useful for live, especially low latency
+Conventional throughput estimation algorithms will always produce the answer that throughput equals download bandwidth \(estimatedBW = downloadedSize / downloadDuration\) and hence the player will never switch up.
 
-```text
-aligned(8) class SegmentIndexBox extends FullBox("sidx", version, 0) {
- unsigned int(32) reference_ID;
- unsigned int(32) timescale;
- if (version==0)
- {
-   unsigned int(32) earliest_presentation_time;
-   unsigned int(32) first_offset;
- }
- else
- {
-   unsigned int(64) earliest_presentation_time;
-   unsigned int(64) first_offset;
- }
- unsigned int(16) reserved = 0;
- unsigned int(16) reference_count;
- for(i=1; i <= reference_count; i++)
- {
-   bit (1) reference_type;
-   unsigned int(31) referenced_size;
-   unsigned int(32) subsegment_duration;
-   bit(1) starts_with_SAP;
-   unsigned int(3) SAP_type;
-   unsigned int(28) SAP_delta_time;
- }
-} 
-```
+Research for better ways to estimate bandwidth in chunked low-latency delivery scenarios is ongoing in academia and throughout the streaming industry:
 
-* Signaling in the MPD
-
-  | Item | Description |  |
-  | :--- | :--- | :--- |
-  | dT | On Adaptation Set level | providing the maximum and nominal duration of each chunk |
-  |  | On Representation level | providing the maximum and nominal distance of two random access points |
-  | dImax | On Adaptation Set level | providing the maximum size of a chunk. If unknown, parameter may be omitted. |
-  |  | On Representation level | providing the maximum size of the data in between the two random access points. If unknown, parameter may be omitted. |
-  | dImin | On Adaptation Set level | providing the minimum size of a chunk. If unknown, parameter may be omitted. |
-  |  | On Representation level | providing the minimum size of the data in between the two random access points. If unknown, parameter may be omitted. |
-  | type | On Adaptation Set level | set to 0 to indicate that these are CMAF chunks without any promise for specific random-access capabilities beyond parsing. |
-  |  | On Representation level | set to 1, 2 or 3 to indicate that random access is possible. |
-
-Resync elements specify segment properties like chunk duration and chunk size which player can utilize them to locate resync point and
-
-* Join streams mid-segment, based on latency requirements
-* Switch representations mid-segment
-* Resynchronize at mid-segment position after buffer underruns
-
-For example:
-
-```text
-[1]<Resync type="0" dT="500000" dImin="0.03125" dImax="0.09375" /> 
-<SegmentTemplate timescale="1000000" duration="8000000" availabilityTimeOffset="7.500" availabilityTimeComplete="false" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="1" />
-<Representation id="0" mimeType="video/mp4" codecs="avc1.640016" bandwidth="500000" width="1280" height="720" sar="1:1" qualityRanking="5" />
-...
-<Representation id="3" mimeType="video/mp4" codecs="avc1.640016" bandwidth="3000000" width="960" height="540" sar="1:1" qualityRanking="2">
-	[2]<Resync type="2" dT="1000000" dImin="0.1" dImax="0.15" marker="TRUE" />
-</Representation>
-```
-
-\[1\] Indicates that
-
-* The point is of type 0 - a CMAF chunk without any promise for specific random-access capabilities.
-* The maximum chunk duration is 500ms \(500,000/1,000,000\)
-* The minimum distance in bytes between two Resynchronization Points is 15,625B \(0.03125x500,000\)
-* The maximum distance in bytes between two Resynchronization Points is 46,875B \(0.09375x500,000\)
-
-\[2\] Indicates that
-
-* The point is of type 2 – a CMAF chunk that can be used for fast access or switching
-* The maximum time delta between these points is 1s \(1,000,000/1,000,000\)
-* The minimum distance in bytes between two Resynchronization Points is 30,000B \(0.1x300,000\)
-* The maximum distance in bytes between two Resynchronization Points is 45,000B \(0.15x300,000\)
-* As the @marker flag is set to **TRUE**, a DASH client may search for the resync point using a box-parsing algorithm.
-
-{% hint style="info" %}
-Resync element is defined in MPEG-DASH ISO/IEC 23009-1:2020/Amd.1, still on the way, don’t know the details how it used in practice.
-{% endhint %}
+* [BOLA](https://arxiv.org/pdf/1601.06748.pdf): choose bitrate based on buffer level
+  * Reference implementation: [BolaRule.js](https://github.com/Dash-Industry-Forum/dash.js/blob/development/src/streaming/rules/abr/BolaRule.js)
+* [ACTE](https://dl.acm.org/doi/10.1145/3304112.3325611): a sliding window to accurately measure the available bandwidth and an online linear adaptive filter to predict the bandwidth into the future
 
 ##   References <a id="references"></a>
 
