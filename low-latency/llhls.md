@@ -12,7 +12,7 @@ The `EXT-X-SERVER-CONTROL` tag allows the Server to indicate support for Deliver
 | PART-HOLD-BACK | The value is a decimal-floating-point number of seconds that indicates the server-recommended minimum distance from the end of the Playlist at which clients should begin to play or to which they should seek when playing in Low-Latency Mode. Its value MUST be at least twice the Part Target Duration. Its value SHOULD be at least three times the Part Target Duration. If different Renditions have different Part Target Durations then PART-HOLD-BACK SHOULD be at least three times the maximum Part Target Duration. |
 | CAN-BLOCK-RELOAD | The value is an enumerated-string whose value is YES if the server supports Blocking Playlist Reload. |
 
-## Generation of Partial Segments <a id="generation-of-partial-segments"></a>
+## Partial Segments <a id="generation-of-partial-segments"></a>
 
 Partial segments are advertised using a new `EXT-X-PART` tag.
 
