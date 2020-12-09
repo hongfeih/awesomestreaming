@@ -347,11 +347,13 @@ For example:
   * segment21.m4s is newly added
   * Player need to merge with previous playlist to get current playlist
 
-![](../.gitbook/assets/delta-1.png) ⇒ ![](../.gitbook/assets/delta-2.png)⇒![](../.gitbook/assets/image%20%283%29.png)
+![](../.gitbook/assets/delta-1.png)![](../.gitbook/assets/delta-2.png)![](../.gitbook/assets/image%20%283%29.png)
 
-* For DATERANGE, need request with ?\_HLS\_skip=v2
+* For DATERANGE, need request with ?\_HLS\_skip=v2 \[11\]
 
 ![](../.gitbook/assets/delta-4.png)
+
+![](../.gitbook/assets/image%20%2810%29.png)
 
 ## Rendition Reports <a id="rendition-reports"></a>
 
@@ -421,4 +423,5 @@ fileSequence1094709.mp4
 8. [Apple’s implementation of Low Latency HLS Explained](https://www.linkedin.com/pulse/apples-implementation-low-latency-hls-explained-phil-harrison/)
 9. [Will Law - Three Roads to Jerusalem](https://www.youtube.com/watch?v=Col12gjnNlI)
 10. [What’s new in Low-Latency HLS](https://developer.apple.com/videos/play/wwdc2020/10228)
+11. [Optimize live streams with HLS Playlist Delta Updates](https://developer.apple.com/videos/play/wwdc2020/10230)
 
