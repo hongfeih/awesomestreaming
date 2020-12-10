@@ -1,2 +1,2 @@
-# P2P Media Loader
+# Media Loader
 

@@ -24,5 +24,5 @@
 
 ## WebRTC
 
-* [P2P Media Loader](webrtc/p2p-media-loader.md)
+* [Media Loader](webrtc/p2p-media-loader.md)
 
