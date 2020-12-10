@@ -11,10 +11,10 @@
 
 ## DRM <a id="drm-1"></a>
 
-* [流媒体中的DRM](drm-1/liu-mei-ti-zhong-de-drm/README.md)
+* [DRM-1](drm-1/liu-mei-ti-zhong-de-drm/README.md)
   * [Encryption](drm-1/liu-mei-ti-zhong-de-drm/encryption.md)
   * [DRM Systems](drm-1/liu-mei-ti-zhong-de-drm/drm-systems.md)
-* [FairPlay Streaming 编程手册](drm-1/fps_guide/README.md)
+* [DRM-2](drm-1/fps_guide/README.md)
   * [关于FairPlay Streaming](drm-1/fps_guide/about-fairplay-streaming.md)
   * [KSM的开发](drm-1/fps_guide/ksm-dev.md)
   * [开发支持FPS的应用](drm-1/fps_guide/fps-app.md)
