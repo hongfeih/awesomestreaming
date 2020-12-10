@@ -32,7 +32,9 @@ You need HLS to reach Apple devices, and DASH for most other devices.  DASH supp
 |  | Opera v31+ | DASH/HLS CMAF + Widevine |
 |  | MS Edge \(Chromium\) | DASH/HLS CMAF + Widevine |
 
-Via a specification called the Common Media Application Format \(CMAF\), the DRM market is moving toward a single set of CBC-encrypted files that can support all three DRMs. In the short term, however, this approach wouldn’t work for a significant number of legacy DASH and HLS devices and players, which is why most producers either support two sets of files or use dynamic packaging to create the appropriate DASH or HLS content for each player.
+As a trend, the DRM market prefer to use a single set of CBC-encrypted files that can support all DRMs via a specification called the Common Media Application Format \(CMAF\). That's a good story, however, there are a significant number of legacy DASH and HLS devices and players which don't support, so you have to provide several sets of files for HLS and DASH separately in a relatively long term.
+
+Let's talk about following 2 most important topics.
 
 ### Encryption
 
