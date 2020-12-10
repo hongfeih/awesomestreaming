@@ -10,6 +10,8 @@ You need HLS to reach Apple devices in the browser, and you’ll need DASH for m
 
 | OS | Browser | DRM |
 | :--- | :--- | :--- |
+| Android 4.4+ |  | DASH/HLS CMAF + Widevine |
+| iOS 9+ |  | HLS + FairPlay |
 | Windows 10 | Chrome v35+ | DASH/HLS CMAF + Widevine |
 |  | Firefox v47+ | DASH/HLS CMAF + Widevine |
 |  | Opera v31+ | DASH/HLS CMAF + Widevine |
@@ -29,8 +31,6 @@ You need HLS to reach Apple devices in the browser, and you’ll need DASH for m
 |  | Firefox v47+ | DASH/HLS CMAF + Widevine |
 |  | Opera v31+ | DASH/HLS CMAF + Widevine |
 |  | MS Edge \(Chromium\) | DASH/HLS CMAF + Widevine |
-| Android 4.4+ |  | DASH/HLS CMAF + Widevine |
-| iOS 9+ |  | HLS + FairPlay |
 
 Via a specification called the Common Media Application Format \(CMAF\), the DRM market is moving toward a single set of CBC-encrypted files that can support all three DRMs. In the short term, however, this approach wouldn’t work for a significant number of legacy DASH and HLS devices and players, which is why most producers either support two sets of files or use dynamic packaging to create the appropriate DASH or HLS content for each player.
 
