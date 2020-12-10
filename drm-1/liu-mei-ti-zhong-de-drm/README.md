@@ -6,7 +6,7 @@ Digital rights management \(DRM\) 是一种对数字媒体版权保护的系统�
 
 ## Prepare contents
 
-You need HLS to reach Apple devices in the browser, and you’ll need DASH for most other devices. Currently, this requires two sets of files, one for HLS and one for DASH, though this will change over the next few years \(more on this below\). Currently, the only DRM supported with HLS is Apple’s FairPlay. In contrast, DASH supports a range of third-party DRM solutions like Widevine and PlayReady.
+You need HLS to reach Apple devices, and DASH for most other devices.  DASH supports a range of third-party DRM solutions like Widevine and PlayReady \([CENC](./#cenc)\). Regarding HLS, generally Apple’s FairPlay \([Sample-AES](./#sample-aes)\) is the only one, but recently with the blooming of HLS CMAF, player can use DASH-alike DRM solutions as well.
 
 | OS | Browser | DRM |
 | :--- | :--- | :--- |
