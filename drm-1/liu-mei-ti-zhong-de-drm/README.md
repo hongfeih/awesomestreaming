@@ -6,13 +6,41 @@ Digital rights management \(DRM\) 是一种对数字媒体版权保护的系统�
 
 ## Prepare contents
 
+You need HLS to reach Apple devices in the browser, and you’ll need DASH for most other devices. Currently, this requires two sets of files, one for HLS and one for DASH, though this will change over the next few years \(more on this below\). Currently, the only DRM supported with HLS is Apple’s FairPlay. In contrast, DASH supports a range of third-party DRM solutions like Widevine and PlayReady.
+
+| OS | Browser | DRM |
+| :--- | :--- | :--- |
+| Windows 10 | Chrome v35+ | DASH/HLS CMAF + Widevine |
+|  | Firefox v47+ | DASH/HLS CMAF + Widevine |
+|  | Opera v31+ | DASH/HLS CMAF + Widevine |
+|  | MS Edge \(Chromium\) | DASH/HLS CMAF + Widevine |
+|  | IE v11+ | DASH/HLS CMAF + PlayReady |
+|  | MS Edge | DASH/HLS CMAF + PlayReady |
+| Windows 8.1 | Chrome v35+ | DASH/HLS CMAF + Widevine |
+|  | Firefox v47+ | DASH/HLS CMAF + Widevine |
+|  | Opera v31+ | DASH/HLS CMAF + Widevine |
+|  | MS Edge \(Chromium\) | DASH/HLS CMAF + Widevine |
+|  | IE v11+ | DASH/HLS CMAF + PlayReady |
+| Windows 7 | Chrome v35+ | DASH/HLS CMAF + Widevine |
+|  | Firefox v47+ | DASH/HLS CMAF + Widevine |
+|  | MS Edge \(Chromium\) | DASH/HLS CMAF + Widevine |
+| Mac OS X 10.9+ | Safari 9+ | HLS + FairPlay |
+|  | Chrome v35+ | DASH/HLS CMAF + Widevine |
+|  | Firefox v47+ | DASH/HLS CMAF + Widevine |
+|  | Opera v31+ | DASH/HLS CMAF + Widevine |
+|  | MS Edge \(Chromium\) | DASH/HLS CMAF + Widevine |
+| Devices | Android 4.4+ | DASH/HLS CMAF + Widevine |
+|  | iOS 9+ | HLS + FairPlay |
+
+Via a specification called the Common Media Application Format \(CMAF\), the DRM market is moving toward a single set of CBC-encrypted files that can support all three DRMs. In the short term, however, this approach wouldn’t work for a significant number of legacy DASH and HLS devices and players, which is why most producers either support two sets of files or use dynamic packaging to create the appropriate DASH or HLS content for each player.
+
 ### Encryption
 
 #### CENC
 
-#### Sample-AES
+ISO/IEC 23001-7 Common encryption in ISO base media file format files
 
-Via a specification called the Common Media Application Format \(CMAF\), the DRM market is moving toward a single set of CBC-encrypted files that can support all three DRMs. In the short term, however, this approach wouldn’t work for a significant number of legacy DASH and HLS devices and players, which is why most producers either support two sets of files or use dynamic packaging to create the appropriate DASH or HLS content for each player.
+#### Sample-AES
 
 ### Packaging
 
@@ -36,5 +64,7 @@ Via a specification called the Common Media Application Format \(CMAF\), the DRM
 
 
 
-## 
+## References
+
+1. [How to Protect Your Content With DRM](https://www.streamingmedia.com/Articles/Editorial/Featured-Articles/How-to-Protect-Your-Content-With-DRM-132289.aspx)
 
